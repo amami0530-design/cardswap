@@ -342,21 +342,38 @@ function findMe(quiet) {
   if (!name || !pid) { if (!quiet) toast('Enter a user name and player ID'); return; }
   me.name = name; me.playerId = pid;
   store.set('cs_name', name); store.set('cs_pid', pid);
-  const u = users.find(x => x.playerId && x.playerId.toLowerCase() === pid.toLowerCase());
+  const same = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+  // a player is the column whose user name AND player ID both match
+  const u = users.find(x => x.playerId && same(x.playerId, pid) && same(x.username, name));
   const who = $('#who');
   if (u) {
-    LISTS.forEach(k => { me[k] = sortCodes(u[k]); });
+    LISTS.forEach(k => { me[k] = sortCodes(u[k]); bad[k] = []; });
     dirty = false;
     who.className = 'ok';
-    who.textContent = 'Loaded your lists' + (u.username && u.username.toLowerCase() !== name.toLowerCase() ? ` (this player ID is saved as "${u.username}")` : '') + '.';
+    who.textContent = `Loaded your lists from the sheet: ${me.forTrade.length} for trade, ${me.lookingFor.length} looking for.`;
   } else {
+    const byPid = users.find(x => x.playerId && same(x.playerId, pid));
+    const byName = users.filter(x => same(x.username, name));
     who.className = 'mute';
-    who.textContent = 'No lists saved for this player ID yet. Fill in the boxes below and press Save.';
+    if (byPid) who.textContent = `This player ID is saved under the name "${byPid.username}". Enter that exact name to load it.`;
+    else if (byName.some(x => !x.playerId)) who.textContent = `Found a column named "${name}" but its PUID cell reads as empty. In the sheet, format row 2 as Plain text and retype the PUID.`;
+    else who.textContent = 'No column in the sheet matches this user name and player ID yet. Fill in the boxes below and press Save to create it.';
   }
   renderLists(); render(); renderMatches(); updateSaveState();
 }
-$('#loadMe').onclick = () => findMe(false);
-['uname', 'pid'].forEach(id => $('#' + id).onkeydown = e => { if (e.key === 'Enter') findMe(false); });
+// Load = refresh from the sheet first, so you always get the latest marks, then fill both boxes
+async function loadMine() {
+  const name = $('#uname').value.trim(), pid = $('#pid').value.trim();
+  if (!name || !pid) return toast('Enter a user name and player ID');
+  $('#loadMe').disabled = true;
+  try { await loadSheet(sheetId); banner(); setInfo(); }
+  catch (e) { toast('Could not refresh the sheet, using what was loaded earlier'); }
+  $('#loadMe').disabled = false;
+  findMe(false);
+}
+function setInfo() { $('#sheetInfo').textContent = 'Sheet …' + sheetId.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's'); }
+$('#loadMe').onclick = loadMine;
+['uname', 'pid'].forEach(id => $('#' + id).onkeydown = e => { if (e.key === 'Enter') loadMine(); });
 
 function overlap() {
   const s = set(me.lookingFor);
