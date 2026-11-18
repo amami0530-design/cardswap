@@ -1,678 +1,187 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Critter Swap – Clash of Critters card trading</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐾</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#eaf4ee;--panel:#fff;--ink:#1c2a38;--mute:#5d6e7c;--line:#cfe0d6;--accent:#ff6b4a;--gold:#f4b928;--goldbg:#fff4cc;--ok:#1f9d6b;--err:#d64545}
-@media (prefers-color-scheme:dark){:root{--bg:#14211c;--panel:#1d2e27;--ink:#e8f3ec;--mute:#9bb2a6;--line:#2f453b;--goldbg:#4a3d12;--err:#ff8a8a}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Fredoka,system-ui,sans-serif;padding-bottom:70px}
-header{padding:18px 16px 8px;max-width:1500px;margin:auto}
-h1{margin:0;font-size:28px;letter-spacing:-.5px}
-h1 span{color:var(--accent)}
-p.sub{margin:2px 0 0;color:var(--mute);font-size:14px}
-main{max-width:1500px;margin:auto;padding:8px 12px}
-#connect,#t-me,#t-match,#goldbanner{max-width:900px}
-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--panel);border-top:1px solid var(--line);z-index:5}
-nav button{flex:1;border:0;background:none;color:var(--mute);font:600 15px Fredoka,sans-serif;padding:14px 4px;cursor:pointer}
-nav button.on{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
-input,select,button.btn{font:inherit;padding:9px 11px;border:1.5px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink)}
-input{flex:1;min-width:120px}
-button.btn{cursor:pointer;font-weight:600}
-button.btn:disabled{opacity:.5;cursor:not-allowed}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.seg{display:flex;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;width:100%;max-width:900px}
-.seg button{flex:1;border:0;padding:10px;font:600 15px Fredoka,sans-serif;background:var(--panel);color:var(--mute);cursor:pointer}
-.seg button.on{background:var(--ink);color:var(--bg)}
-.banner{border-radius:10px;padding:8px 12px;font-size:14px;margin:8px 0;background:var(--goldbg);border:1.5px solid var(--gold)}
-.banner.open{background:var(--ok);border-color:var(--ok);color:#fff}
-.topbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:4px 0}
-.filters .frow{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
-.filters .flabel{flex:0 0 52px;font-weight:700;font-size:14px;color:var(--mute);padding-top:5px}
-.fchips{display:flex;flex-wrap:wrap;gap:6px}
-.fchip{border:1.5px solid var(--line);background:var(--panel);color:var(--mute);border-radius:999px;padding:3px 12px;font:600 13px Fredoka,sans-serif;cursor:pointer}
-.fchip.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
-#grid{overflow-x:auto;padding-bottom:6px}
-.setblock{min-width:972px}
-.sethead{margin:14px 0 6px;font-weight:700;font-size:15px;display:flex;justify-content:space-between;color:var(--mute)}
-.grid{display:grid;grid-template-columns:repeat(9,minmax(100px,1fr));gap:8px}
-.card{background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:6px;text-align:center}
-.card.gold{background:var(--goldbg);border-color:var(--gold)}
-.card.sel{box-shadow:0 0 0 2.5px var(--accent)}
-.card b{font-size:20px;display:block}
-.pic{position:relative;border-radius:8px;overflow:hidden;margin-bottom:4px;background:var(--bg);min-height:60px}
-.pic img{display:block;width:100%;height:auto}
-.pic.nofile img{display:none}
-.pic.foil::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,107,74,.35),rgba(244,185,40,.3),rgba(63,201,165,.35),rgba(91,140,255,.35));mix-blend-mode:overlay;pointer-events:none}
-.card .nm{font-size:11px;color:var(--mute);min-height:14px;line-height:1.2}
-.st{color:var(--gold);font-size:13px;letter-spacing:1px;min-height:18px;margin-bottom:2px;white-space:nowrap}
-.st .unk{color:var(--mute);letter-spacing:0}
-.st .goldtag{font-size:10px;font-weight:700;letter-spacing:.5px;color:#a87b00;margin-left:4px}
-.card .t{display:flex;gap:4px;margin-top:4px}
-.card .t button{flex:1;border:1.5px solid var(--line);border-radius:8px;padding:6px 0;font:600 12px Fredoka,sans-serif;background:none;color:var(--mute);cursor:pointer}
-.card .t button.on{background:var(--ok);border-color:var(--ok);color:#fff}
-.card .t button.f.on{background:linear-gradient(120deg,#ff6b4a,#f4b928,#3fc9a5,#5b8cff);border-color:transparent}
-.box{background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
-.box h3{margin:0 0 4px;font-size:18px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.tag{font-size:12px;font-weight:600;border-radius:8px;padding:2px 8px;background:var(--bg);color:var(--mute)}
-.tag.swap{background:var(--ok);color:#fff}
-.chips{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px}
-.chip{background:var(--bg);border-radius:8px;padding:2px 8px;font-size:13px}
-.chip.f{background:linear-gradient(120deg,#ffd6cc,#fff0bd,#c9f2e6,#d4e2ff);color:#1c2a38}
-.chip.g{box-shadow:inset 0 0 0 1.5px var(--gold)}
-.chip.locked{opacity:.45;text-decoration:line-through}
-.mrow{display:flex;gap:14px;align-items:flex-start}
-.mrow.locked{opacity:.8}
-.mcard{flex:0 0 118px;text-align:center}
-.mcard .pic{margin-bottom:4px}
-.mprov{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
-.prov{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:10px;flex-wrap:wrap}
-.mute{color:var(--mute);font-size:13px}
-.err{color:var(--err);font-size:13px;min-height:0;margin:4px 0 0}
-.ok{color:var(--ok);font-size:13px}
-.msg{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:9;display:none}
-.hp{position:absolute;left:-9999px}
-[hidden]{display:none!important}
-</style>
-</head>
-<body>
-<header>
-  <h1>Critter <span>Swap</span></h1>
-  <p class="sub">Unofficial fan site. Keep your trade lists in a shared Google Sheet and find who to trade with.</p>
-</header>
-<main>
-
-  <!-- STEP 1: CONNECT A SHEET (shown until a sheet is saved in the cookie) -->
-  <section id="connect" hidden>
-    <div class="box">
-      <h3>Connect your trading sheet</h3>
-      <div class="row">
-        <input id="sheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off">
-        <button class="btn primary" id="sheetGo">Submit</button>
-      </div>
-      <p class="err" id="connectErr"></p>
-      <p class="mute">Paste the sheet's Share link. It must be shared as "Anyone with the link can view" (a "publish to web" link won't work). Your link is remembered in a cookie, so you only enter it once on this device.</p>
-    </div>
-  </section>
-
-  <!-- STEP 2: THE APP -->
-  <div id="app" hidden>
-    <div class="topbar">
-      <span class="mute" id="sheetInfo"></span>
-      <span class="row" style="margin:0">
-        <button class="btn" id="reload">Reload</button>
-        <button class="btn" id="change">Change sheet</button>
-      </span>
-    </div>
-    <div class="banner" id="goldbanner"></div>
-
-    <!-- MY LISTS TAB (default) -->
-    <section id="t-me">
-      <div class="box">
-        <h3>My profile</h3>
-        <div class="row">
-          <input id="uname" maxlength="30" placeholder="User name" autocomplete="nickname">
-          <input id="pid" maxlength="30" placeholder="Player ID" autocomplete="off">
-          <button class="btn primary" id="loadMe">Load my lists</button>
-        </div>
-        <input class="hp" id="website" tabindex="-1" autocomplete="off">
-        <p class="mute" id="who"></p>
-      </div>
-
-      <div class="box">
-        <h3>For trade <span class="tag">your duplicates</span></h3>
-        <input id="in-forTrade" placeholder="e.g. 7, 22, 90F" autocomplete="off" style="width:100%">
-        <div class="chips" id="chips-forTrade"></div>
-        <p class="err" id="err-forTrade"></p>
-      </div>
-
-      <div class="box">
-        <h3>Looking for <span class="tag">cards you don't own</span></h3>
-        <input id="in-lookingFor" placeholder="e.g. 3, 12F, 40" autocomplete="off" style="width:100%">
-        <div class="chips" id="chips-lookingFor"></div>
-        <p class="err" id="err-lookingFor"></p>
-      </div>
-
-      <div class="row">
-        <button class="btn primary" id="save">Save to sheet</button>
-        <span class="mute" id="saveInfo"></span>
-      </div>
-      <p class="mute">Type card numbers separated by commas. Add F for foil (12F). A list like [3, 12F, 40] works too. You can also tap cards on the Cards tab.</p>
-    </section>
-
-    <!-- CARDS TAB -->
-    <section id="t-cards" hidden>
-      <div class="seg" id="mode"><button data-m="lookingFor" class="on">Looking for</button><button data-m="forTrade">For trade</button></div>
-      <p class="mute" id="modehelp"></p>
-
-      <div class="box" style="max-width:900px">
-        <div class="row" style="margin-top:0"><b id="ceLabel"></b><span class="mute" id="ceWho"></span></div>
-        <input id="in-cards" autocomplete="off" style="width:100%">
-        <p class="err" id="err-cards"></p>
-        <div class="row">
-          <button class="btn primary" id="save2">Save to sheet</button>
-          <span class="mute" id="saveInfo2"></span>
-        </div>
-      </div>
-
-      <div class="box filters" id="filters">
-        <div class="frow"><span class="flabel">Sets</span><div class="fchips" id="f-sets"></div></div>
-        <div class="frow"><span class="flabel">Rarity</span><div class="fchips" id="f-rar"></div></div>
-        <div class="frow"><span class="flabel">Stars</span><div class="fchips" id="f-stars"></div></div>
-        <div class="row"><input id="q" type="search" inputmode="numeric" placeholder="Card number" style="max-width:200px"><span class="mute" id="count"></span></div>
-      </div>
-
-      <div id="grid"></div>
-    </section>
-
-    <!-- MATCHES TAB -->
-    <section id="t-match" hidden>
-      <div id="matches"></div>
-    </section>
-  </div>
-</main>
-<nav id="nav" hidden>
-  <button data-t="me" class="on">My Lists</button>
-  <button data-t="cards">Cards</button>
-  <button data-t="match">Matches</button>
-</nav>
-<div class="msg" id="msg"></div>
-
-<script>
-// Autumn Tales album: 15 sets x 9 cards = 135. Every card also has a foil version.
-// Star level depends on the card NUMBER, same as the New Journey album on the wiki (the Autumn Tales
-// page still shows placeholders). One digit per card, 1-135, nine per set:
-const STARS = '111111112' + '111111122' + '111111222' + '111112223' + '111122233' + '111222233' + '112223334' + '112223334'
-            + '122233344' + '222333445' + '223334445' + '233334455' + '234444555' + '334444555' + '344445555';
-// Card names are still placeholders on the wiki. Names, stars or rarity can be overridden in the sheet's
-// "Cards" tab (number | name | stars | rarity); a blank cell keeps the default.
-const SETS = ['Solpear','Sparkrow','Droppit','Taptail','Voltkit','Ringtail','Maskfry','Tindercub','Punchimp','Manteeny','Flameow','Kittazap','Cheerling','Momopo','Sparkit'];
-const TOTAL = SETS.length * 9;
-const GOLD = new Set([63,72,80,90,96,98,106,108,113,114,117,121,123,125,131,134,135]);
-const LISTS = ['forTrade', 'lookingFor'];
-const LIST_NAME = {forTrade: 'For trade', lookingFor: 'Looking for'};
-const UNIVERSE = {sets: SETS, rar: ['normal', 'gold'], stars: [1, 2, 3, 4, 5, 0]};   // stars 0 = unknown
-
-const $ = s => document.querySelector(s);
-const baseCards = () => Array.from({length: TOTAL}, (_, i) => ({n: i + 1, set: SETS[Math.floor(i / 9)], name: '', stars: Number(STARS[i]) || 0, rarity: GOLD.has(i + 1) ? 'gold' : 'normal'}));
-
-// ---------- state ----------
-let sheetId = '';
-let cards = baseCards();
-let users = [];
-let scriptUrl = '';
-let goldOpen = false;
-let mode = 'lookingFor';
-let dirty = false;
-let loadedKey = '';                                  // which name|PUID the lists were last loaded for
-const me = {name: '', playerId: '', forTrade: [], lookingFor: []};
-const bad = {forTrade: [], lookingFor: []};          // unrecognised tokens typed in each box
-// card filters (multi-select). Default: every set, both rarities, and 4 and 5 stars (plus unknown stars).
-const filt = {sets: new Set(SETS), rar: new Set(['normal', 'gold']), stars: new Set([4, 5, 0])};
-
-// ---------- helpers ----------
-const set = a => new Set(a);
-const num = c => parseInt(c);
-const isFoil = c => String(c).endsWith('F');
-const cardOf = c => cards[num(c) - 1];
-const isGold = c => { const k = cardOf(c); return !!k && k.rarity === 'gold'; };
-const label = c => '#' + num(c) + (isFoil(c) ? ' foil' : '');
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-const toast = t => { const m = $('#msg'); m.textContent = t; m.style.display = 'block'; setTimeout(() => m.style.display = 'none', 2600); };
-const sortCodes = a => [...new Set(a)].sort((x, y) => num(x) - num(y) || (isFoil(x) - isFoil(y)));
-const same = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
-
-// Cookie (with a localStorage backup for browsers or file:// pages that block cookies)
-const store = {
-  get(k) {
-    const m = document.cookie.match(new RegExp('(?:^|; )' + k + '=([^;]*)'));
-    if (m) return decodeURIComponent(m[1]);
-    try { return localStorage.getItem(k) || ''; } catch (e) { return ''; }
-  },
-  set(k, v) {
-    document.cookie = `${k}=${encodeURIComponent(v)}; max-age=${365 * 86400}; path=/; SameSite=Lax` + (location.protocol === 'https:' ? '; Secure' : '');
-    try { localStorage.setItem(k, v); } catch (e) {}
-  },
-  del(k) {
-    document.cookie = `${k}=; max-age=0; path=/`;
-    try { localStorage.removeItem(k); } catch (e) {}
-  }
-};
-
-// "3, 12F, [40]" -> {ok: ['3','12F','40'], bad: [...]}
-function parseList(text) {
-  const toks = String(text || '').replace(/[\[\]"']/g, ' ').split(/[\s,;]+/).filter(Boolean);
-  const ok = [], badTokens = [];
-  toks.forEach(t => {
-    const m = /^#?(\d{1,3})(f)?$/i.exec(t);
-    const n = m && +m[1];
-    if (m && n >= 1 && n <= TOTAL) ok.push(n + (m[2] ? 'F' : '')); else badTokens.push(t);
-  });
-  return {ok: sortCodes(ok), bad: badTokens};
-}
-
-function sheetIdFrom(text) {
-  const t = String(text || '').trim();
-  if (/\/spreadsheets\/d\/e\//.test(t)) return 'PUBLISHED';   // "publish to web" link: has a different ID, can't be read live
-  const m = t.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-  if (m) return m[1];
-  return /^[a-zA-Z0-9_-]{20,}$/.test(t) ? t : '';
-}
-
-// The album tab is a grid: column A = card numbers, then one column per player.
-//   row 1 = username, row 2 = player ID (PUID), then rows 3-137 = cards 1-135, rows 138-272 = 1F-135F.
-//   A player's cell holds FT (for trade) or LF (looking for), or stays blank.
+/**
+ * Critter Swap backend (saving only). The web page reads the sheet directly; this script writes to it.
+ *
+ * Setup (once):
+ *   1. Open your trade sheet > Extensions > Apps Script, and paste this file in.
+ *   2. Deploy > New deployment > Web app > Execute as: Me, Access: Anyone.
+ *   3. Open the web app URL (ends with /exec) once in your browser.
+ *      That writes the URL into a Settings tab, so players only ever need the sheet link.
+ *   4. Share the sheet as "Anyone with the link: Viewer" so the page can read it.
+ *
+ * The album tab ("Latest-Album") is a grid, one column per player:
+ *   A1 USERNAME | B1 name | C1 name | ...
+ *   A2 PUID     | B2 id   | C2 id   | ...
+ *   A3..A137    = cards 1..135        A138..A272 = foil cards 1F..135F
+ *   A player's cell is "FT" (for trade), "LF" (looking for) or blank.
+ * Keep the PUID row (row 2) formatted as Plain text. Don't reorder or delete the card rows.
+ * Other tabs (created automatically):
+ *   Settings: key | value                     (goldTrading = on / off, scriptUrl = filled in for you)
+ *   Cards:    number | name | stars | rarity  (optional; blank cell = keep the site's default)
+ */
 const ALBUM_TAB = 'Latest-Album';
-function parseGrid(rows) {
-  const out = [];
-  const width = Math.max(0, ...rows.map(r => r.length));
-  for (let c = 1; c < width; c++) {
-    const name = String((rows[0] && rows[0][c]) ?? '').trim();
-    const pid = String((rows[1] && rows[1][c]) ?? '').trim();
-    if (!name && !pid) continue;
-    const forTrade = [], lookingFor = [];
-    for (let i = 0; i < TOTAL * 2; i++) {
-      const mark = String((rows[i + 2] && rows[i + 2][c]) ?? '').trim().toUpperCase();
-      if (mark !== 'FT' && mark !== 'LF') continue;
-      const code = i < TOTAL ? String(i + 1) : (i - TOTAL + 1) + 'F';
-      (mark === 'FT' ? forTrade : lookingFor).push(code);
-    }
-    out.push({playerId: pid, username: name, forTrade, lookingFor});
+const TOTAL = 135;                 // cards per version; the foil block follows the normal block
+const FIRST_CARD_ROW = 3;          // row of card 1; card nF is at FIRST_CARD_ROW + TOTAL + n - 1
+const LAST_ROW = FIRST_CARD_ROW + TOTAL * 2 - 1;   // 272
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function ensureSheet_(name, head, seed) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(name);
+  if (!sh) {
+    sh = ss.insertSheet(name);
+    sh.appendRow(head);
+    (seed || []).forEach(r => sh.appendRow(r));
   }
-  return out;
+  return sh;
 }
 
-// ---------- reading the public sheet ----------
-async function readTab(id, tab, expect) {
-  const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tab)}&_=${Date.now()}`;
-  const text = await (await fetch(url, {cache: 'no-store'})).text();
-  const m = text.match(/setResponse\(([\s\S]*)\);?\s*$/);
-  if (!m) throw new Error('not readable');
-  const j = JSON.parse(m[1]);
-  if (j.status === 'error') return null;                         // readable sheet, but no such tab
-  let labels = j.table.cols.map(c => String(c.label || '').trim());
-  let rows = j.table.rows.map(r => (r.c || []).map(c => (c && c.v != null) ? c.v : ''));
-  if (labels.every(l => !l) && rows.length) labels = rows.shift().map(v => String(v).trim());
-  if (!expect.every(k => labels.includes(k))) return null;      // tab missing or has other columns
-  return rows.map(r => Object.fromEntries(labels.map((l, i) => [l, r[i] === undefined ? '' : r[i]])));
+// Creates the album tab (if it doesn't exist) with the card rows in the right order.
+function ensureAlbum_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(ALBUM_TAB);
+  if (sh) return sh;
+  sh = ss.insertSheet(ALBUM_TAB);
+  const col = [['USERNAME'], ['PUID']];
+  for (let n = 1; n <= TOTAL; n++) col.push([String(n)]);
+  for (let n = 1; n <= TOTAL; n++) col.push([n + 'F']);
+  sh.getRange(1, 1, col.length, 1).setNumberFormat('@').setValues(col);
+  sh.setFrozenRows(2); sh.setFrozenColumns(1);
+  return sh;
 }
 
-// The album grid, as raw rows (no header detection). Returns null if the tab isn't there.
-async function readGrid(id) {
-  const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(ALBUM_TAB)}&_=${Date.now()}`;
-  const text = await (await fetch(url, {cache: 'no-store'})).text();
-  const m = text.match(/setResponse\(([\s\S]*)\);?\s*$/);
-  if (!m) throw new Error('not readable');
-  const j = JSON.parse(m[1]);
-  if (j.status === 'error') return null;
-  const rows = j.table.rows.map(r => (r.c || []).map(c => (c && c.v != null) ? c.v : ''));
-  // Google blanks cells whose type doesn't match their column's majority type, and column A mixes numbers
-  // (1-135) with text (1F, USERNAME, PUID). So A1 may come back empty: only reject a cell that says something else.
-  const first = String((rows[0] && rows[0][0]) ?? '').trim().toUpperCase();
-  return (!rows.length || (first && first !== 'USERNAME')) ? null : rows;   // a wrong tab name can silently return another tab
+function setSetting_(key, value) {
+  const sh = ensureSheet_('Settings', ['key', 'value'], [['goldTrading', 'off']]);
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === key) { sh.getRange(i + 1, 2).setValue(value); return; }
+  }
+  sh.appendRow([key, value]);
 }
 
-// Preferred read: ask the Apps Script web app, which reads the live sheet directly
-// (exact text values, never cached). Falls back to the sheet's public read endpoint if that isn't available.
-async function readViaScript() {
-  const r = await fetch(scriptUrl + (scriptUrl.includes('?') ? '&' : '?') + 'action=grid&_=' + Date.now(), {cache: 'no-store'});
-  const j = await r.json();
-  if (!j || !j.ok || !Array.isArray(j.rows)) throw new Error('script has no grid');
-  return j.rows;
+// Cards tab: one row per card (number | name | stars | rarity). Fill in names and stars here
+// and the website shows them (stars 1-5, rarity "normal" or "gold"). Only seeded while the tab is empty.
+const GOLD_CARDS = [63, 72, 80, 90, 96, 98, 106, 108, 113, 114, 117, 121, 123, 125, 131, 134, 135];
+function seedCards_() {
+  const sh = ensureSheet_('Cards', ['number', 'name', 'stars', 'rarity']);
+  if (sh.getLastRow() > 1) return;
+  const rows = [];
+  for (let n = 1; n <= TOTAL; n++) rows.push([n, '', '', GOLD_CARDS.indexOf(n) >= 0 ? 'gold' : 'normal']);
+  sh.getRange(2, 1, rows.length, 4).setValues(rows);
 }
 
-let lastLoad = {source: '', at: ''};
-async function loadSheet(id) {
-  const [c, s] = await Promise.all([
-    readTab(id, 'Cards', ['number']).catch(() => null),
-    readTab(id, 'Settings', ['key', 'value']).catch(() => null)
-  ]);
-  const settings = {};
-  (s || []).forEach(r => { if (r.key) settings[String(r.key)] = String(r.value).trim(); });
-  scriptUrl = /^https:\/\/script\.google\.com\//.test(settings.scriptUrl || '') ? settings.scriptUrl : '';
-  goldOpen = (settings.goldTrading || '').toLowerCase() === 'on';
-
-  let grid = null, source = 'sheet';
-  if (scriptUrl) { try { grid = await readViaScript(); source = 'script'; } catch (e) { grid = null; } }
-  if (!grid) { grid = await readGrid(id); source = 'sheet'; }   // throws when Google refuses (sheet not shared)
-  lastLoad = {source, at: new Date().toLocaleTimeString()};
-
-  users = grid ? parseGrid(grid) : [];
-  cards = baseCards();
-  (c || []).forEach(o => {
-    const k = cards[Number(o.number) - 1]; if (!k) return;
-    if (o.name) k.name = String(o.name);
-    const st = Math.round(Number(o.stars)); if (st >= 1 && st <= 5) k.stars = st;
-    const r = String(o.rarity || '').trim().toLowerCase(); if (r) k.rarity = r.indexOf('gold') === 0 ? 'gold' : 'normal';
-  });
-  return {hasAlbumTab: !!grid};
+// Safe to run many times.
+function setup_() {
+  ensureAlbum_();
+  seedCards_();
+  const url = ScriptApp.getService().getUrl();
+  if (url) setSetting_('scriptUrl', url);
 }
 
-// ---------- connecting ----------
-function showConnect(err, prefill) {
-  $('#app').hidden = true; $('#nav').hidden = true; $('#connect').hidden = false;
-  $('#connectErr').textContent = err || '';
-  if (prefill) $('#sheetUrl').value = prefill;
+// ?action=grid  -> the album tab as rows of text (the page reads this: it's live and exact, unlike a cached public read)
+// anything else -> finish setup. Open the /exec URL once in a browser to do that.
+function doGet(e) {
+  if (e && e.parameter && e.parameter.action === 'grid') {
+    const sh = ensureAlbum_();
+    const rows = sh.getDataRange().getValues().map(r => r.map(v => v === '' || v == null ? '' : String(v)));
+    return json_({ ok: true, rows: rows });
+  }
+  setup_();
+  return json_({ ok: true, message: 'Critter Swap is set up. You can close this tab.' });
 }
 
-const BUILD = '2026-11-18a';   // shown in the top bar, so you can tell which version of this page is actually being served
-function setInfo() { $('#sheetInfo').textContent = 'Sheet …' + sheetId.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's') + ' · loaded ' + lastLoad.at + ' via ' + lastLoad.source + ' · build ' + BUILD; }
+// "12" -> normal card 12, "12F" -> foil card 12, as a row number (or 0 if invalid).
+function rowFor_(code) {
+  const m = /^(\d{1,3})(F?)$/.exec(code);
+  const n = m && Number(m[1]);
+  if (!m || n < 1 || n > TOTAL) return 0;
+  return FIRST_CARD_ROW + (m[2] ? TOTAL : 0) + n - 1;
+}
 
-async function connect(id, fromSubmit) {
-  $('#sheetGo').disabled = true;
+// Write: save one player's lists into their column (found by player ID, created if new).
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
   try {
-    const info = await loadSheet(id);
-    sheetId = id;
-    store.set('cs_sheet', id);
-    $('#connect').hidden = true; $('#app').hidden = false; $('#nav').hidden = false;
-    setInfo(); banner(); renderFilters();
-    // preselect: pull this player's saved lists from the sheet (unless they have unsaved edits)
-    if (me.name && me.playerId && !dirty) findMe(true);
-    else if (!me.name || !me.playerId) { $('#who').className = 'mute'; $('#who').textContent = 'Enter your user name and player ID, then press Load my lists.'; }
-    renderLists(); render(); renderMatches(); updateSaveState();
-    if (!info.hasAlbumTab) toast('No "' + ALBUM_TAB + '" tab found in this sheet (A1 should say USERNAME, A2 PUID)');
-    else if (fromSubmit) toast('Sheet connected');
-  } catch (e) {
-    showConnect('Could not read that sheet. Check the link and make sure sharing is set to "Anyone with the link can view".', 'https://docs.google.com/spreadsheets/d/' + id);
+    const d = JSON.parse(e.postData.contents);
+    if (d.website) return json_({ ok: false, error: 'spam' }); // honeypot
+    if (d.action === 'complete') return complete_(d);
+    const playerId = String(d.playerId || '').trim();
+    const username = String(d.username || '').trim().slice(0, 30);
+    if (!/^[A-Za-z0-9_-]{1,30}$/.test(playerId) || !username) return json_({ ok: false, error: 'Missing or invalid name / player ID' });
+
+    const sh = ensureAlbum_();
+    const lastCol = Math.max(sh.getLastColumn(), 1);
+    const head = sh.getRange(1, 1, 2, lastCol).getValues();   // [usernames, PUIDs]
+
+    // existing player? The column must match BOTH the user name (row 1) and the player ID (row 2).
+    const same = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+    let col = 0, isNew = false;
+    for (let c = 1; c < lastCol; c++) {
+      if (!same(head[1][c], playerId)) continue;
+      if (same(head[0][c], username)) { col = c + 1; break; }
+      // same player ID under another name: refuse, so one ID never ends up in two columns
+      return json_({ ok: false, error: 'This player ID is already saved under the name "' + String(head[0][c]).trim() + '". Use that exact name, or change the name in the sheet.' });
+    }
+    if (!col) {   // new player: first column with an empty username and PUID
+      isNew = true;
+      col = lastCol + 1;
+      for (let c = 1; c < lastCol; c++) {
+        if (!String(head[0][c]).trim() && !String(head[1][c]).trim()) { col = c + 1; break; }
+      }
+      if (col > sh.getMaxColumns()) sh.insertColumnsAfter(sh.getMaxColumns(), col - sh.getMaxColumns());
+    }
+
+    const values = [];
+    for (let r = 1; r <= LAST_ROW; r++) values.push(['']);
+    values[0][0] = username;
+    values[1][0] = playerId;
+    const mark = (list, tag) => String(list || '').split(',').forEach(c => {
+      const row = rowFor_(c.trim().toUpperCase());
+      if (row) values[row - 1][0] = tag;
+    });
+    mark(d.lookingFor, 'LF');
+    mark(d.forTrade, 'FT');    // a card can only be in one list; FT wins if both were sent
+
+    const range = sh.getRange(1, col, LAST_ROW, 1);
+    range.setNumberFormat('@');      // plain text, so player IDs stay text and don't get read as numbers
+    range.setValues(values);
+    return json_({ ok: true, updated: !isNew });
   } finally {
-    $('#sheetGo').disabled = false;
+    lock.releaseLock();
   }
 }
 
-$('#sheetGo').onclick = () => {
-  const id = sheetIdFrom($('#sheetUrl').value);
-  if (id === 'PUBLISHED') return ($('#connectErr').textContent = 'That is a "publish to web" link. In Google Sheets use Share > "Anyone with the link" > Viewer, then paste that Share link (it looks like docs.google.com/spreadsheets/d/…/edit).');
-  if (!id) return ($('#connectErr').textContent = 'That doesn\'t look like a Google Sheets link.');
-  $('#connectErr').textContent = '';
-  connect(id, true);
-};
-$('#sheetUrl').onkeydown = e => { if (e.key === 'Enter') $('#sheetGo').click(); };
-$('#reload').onclick = async () => { await connect(sheetId, false); toast('Reloaded'); };
-$('#change').onclick = () => { store.del('cs_sheet'); sheetId = ''; showConnect('', ''); $('#sheetUrl').value = ''; };
+const same_ = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
 
-// ---------- my lists ----------
-function findMe(quiet) {
-  const name = $('#uname').value.trim(), pid = $('#pid').value.trim();
-  if (!name || !pid) { if (!quiet) toast('Enter a user name and player ID'); return; }
-  me.name = name; me.playerId = pid;
-  store.set('cs_name', name); store.set('cs_pid', pid);
-  loadedKey = (name + '|' + pid).toLowerCase();
-  // a player is the column whose user name AND player ID both match
-  const u = users.find(x => x.playerId && same(x.playerId, pid) && same(x.username, name));
-  const who = $('#who');
-  if (u) {
-    LISTS.forEach(k => { me[k] = sortCodes(u[k]); bad[k] = []; });
-    dirty = false;
-    who.className = 'ok';
-    who.textContent = `Loaded your lists from the sheet: ${me.forTrade.length} for trade, ${me.lookingFor.length} looking for.`;
-  } else {
-    const byPid = users.find(x => x.playerId && same(x.playerId, pid));
-    const byName = users.filter(x => same(x.username, name));
-    who.className = 'mute';
-    if (byPid) who.textContent = `This player ID is saved under the name "${byPid.username}". Enter that exact name to load it.`;
-    else if (byName.some(x => !x.playerId)) who.textContent = `Found a column named "${name}" but its PUID cell reads as empty. In the sheet, format row 2 as Plain text and retype the PUID.`;
-    else who.textContent = 'No column in the sheet matches this user name and player ID yet. Fill in the boxes below and press Save to create it.';
+// Column (1-based) whose username (row 1) AND player ID (row 2) both match. 0 = no such player.
+function findCol_(head, lastCol, playerId, username) {
+  for (let c = 1; c < lastCol; c++) {
+    if (same_(head[1][c], playerId) && same_(head[0][c], username)) return c + 1;
   }
-  renderLists(); render(); renderMatches(); updateSaveState();
-}
-// Load = refresh from the sheet first, so you always get the latest marks, then fill both boxes
-async function loadMine() {
-  const name = $('#uname').value.trim(), pid = $('#pid').value.trim();
-  if (!name || !pid) return toast('Enter a user name and player ID');
-  $('#loadMe').disabled = true;
-  try { await loadSheet(sheetId); banner(); setInfo(); renderFilters(); }
-  catch (e) { toast('Could not refresh the sheet, using what was loaded earlier'); }
-  $('#loadMe').disabled = false;
-  findMe(false);
-}
-$('#loadMe').onclick = loadMine;
-['uname', 'pid'].forEach(id => $('#' + id).onkeydown = e => { if (e.key === 'Enter') loadMine(); });
-
-// when the Cards or Matches tab opens, make sure this player's saved lists are already preselected
-function autoLoad() {
-  const key = (me.name + '|' + me.playerId).toLowerCase();
-  if (me.name && me.playerId && !dirty && key !== loadedKey) findMe(true);
+  return 0;
 }
 
-function overlap() {
-  const s = set(me.lookingFor);
-  return me.forTrade.filter(c => s.has(c));
-}
-
-function errFor(k) {
-  const dup = set(overlap());
-  const msgs = [];
-  if (bad[k].length) msgs.push('Not a card (1-' + TOTAL + ', optional F): ' + bad[k].join(', '));
-  const here = me[k].filter(c => dup.has(c));
-  if (here.length) msgs.push('Also in your ' + LIST_NAME[k === 'forTrade' ? 'lookingFor' : 'forTrade'] + ' list: ' + here.map(label).join(', ') + '. A card can\'t be both.');
-  return msgs.join(' ');
-}
-
-// skipEl = the input being typed in right now, so its text isn't rewritten under the cursor
-function renderLists(skipEl) {
-  LISTS.forEach(k => {
-    const inp = $('#in-' + k);
-    if (inp !== skipEl) inp.value = me[k].join(', ');
-    $('#chips-' + k).innerHTML = chips(me[k]);
-    $('#err-' + k).textContent = errFor(k);
-  });
-  // the Cards tab editor shows whichever list is being picked
-  const ci = $('#in-cards');
-  if (ci !== skipEl) ci.value = me[mode].join(', ');
-  ci.placeholder = mode === 'forTrade' ? 'e.g. 7, 22, 90F' : 'e.g. 3, 12F, 40';
-  $('#ceLabel').textContent = LIST_NAME[mode];
-  $('#ceWho').textContent = (me.name && me.playerId) ? `Editing as ${me.name} (${me.playerId})` : 'Enter your user name and player ID on the My Lists tab to load and save.';
-  $('#err-cards').textContent = errFor(mode);
-}
-
-function typed(k, inp) {
-  const p = parseList(inp.value);
-  me[k] = p.ok; bad[k] = p.bad; dirty = true;
-  renderLists(inp); render(); updateSaveState();
-}
-LISTS.forEach(k => {
-  const inp = $('#in-' + k);
-  inp.oninput = () => typed(k, inp);
-  inp.onblur = () => { bad[k] = []; renderLists(); };   // tidy the text, dropping anything unrecognised
-});
-$('#in-cards').oninput = () => typed(mode, $('#in-cards'));
-$('#in-cards').onblur = () => { bad[mode] = []; renderLists(); };
-['uname', 'pid'].forEach(id => $('#' + id).oninput = () => {
-  me.name = $('#uname').value.trim(); me.playerId = $('#pid').value.trim();
-  store.set('cs_name', me.name); store.set('cs_pid', me.playerId);   // remembered right away, not only after Load or Save
-  renderLists($('#' + id)); updateSaveState();
-});
-
-function problems() {
-  const p = [];
-  if (!scriptUrl) p.push('This sheet has no save script yet. The sheet owner needs to open the Apps Script web app URL once.');
-  if (!me.name || !/^[A-Za-z0-9_-]{1,30}$/.test(me.playerId)) p.push('Enter a user name and a player ID (letters, numbers, - or _) on the My Lists tab.');
-  if (bad.forTrade.length || bad.lookingFor.length) p.push('Fix the unrecognised card entries.');
-  if (overlap().length) p.push('Remove cards that are in both lists.');
-  return p;
-}
-function updateSaveState() {
-  const p = problems();
-  const info = p.length ? p[0] : (dirty ? 'Unsaved changes' : '');
-  ['save', 'save2'].forEach(id => $('#' + id).disabled = p.length > 0);
-  $('#saveInfo').textContent = info; $('#saveInfo2').textContent = info;
-}
-
-async function doSave() {
-  const p = problems(); if (p.length) return toast(p[0]);
-  $('#save').disabled = true; $('#save2').disabled = true;
-  try {
-    const r = await (await fetch(scriptUrl, {method: 'POST', headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify({playerId: me.playerId, username: me.name, forTrade: me.forTrade.join(','), lookingFor: me.lookingFor.join(','), website: $('#website').value})})).json();
-    if (!r.ok) throw new Error(r.error || 'Save failed');
-    store.set('cs_name', me.name); store.set('cs_pid', me.playerId);
-    dirty = false; toast('Saved to the sheet');
-    await loadSheet(sheetId); renderMatches(); banner(); setInfo(); renderFilters(); render();
-  } catch (e) { toast('Save failed: ' + e.message); }
-  updateSaveState();
-}
-$('#save').onclick = doSave;
-$('#save2').onclick = doSave;
-
-// ---------- cards tab ----------
-function banner() {
-  const b = $('#goldbanner');
-  b.className = 'banner' + (goldOpen ? ' open' : '');
-  b.textContent = goldOpen
-    ? 'Gold trading is OPEN right now. Gold cards can be traded or gifted today only.'
-    : 'Gold trading is closed. Gold cards can only be traded or gifted in special windows (48h notice, then one day). Blue cards can be traded any day.';
-}
-
-// multi-select filter chips
-function fchip(g, v, text, on) { return `<button class="fchip ${on ? 'on' : ''}" data-g="${g}" data-v="${esc(v)}">${esc(text)}</button>`; }
-function allOn(g) { return UNIVERSE[g].every(x => filt[g].has(x)); }
-function renderFilters() {
-  const unknown = cards.some(c => !c.stars);
-  $('#f-sets').innerHTML = fchip('sets', '*', 'All', allOn('sets')) + SETS.map(s => fchip('sets', s, s, filt.sets.has(s))).join('');
-  $('#f-rar').innerHTML = fchip('rar', '*', 'All', allOn('rar')) + fchip('rar', 'normal', 'Normal', filt.rar.has('normal')) + fchip('rar', 'gold', 'Gold', filt.rar.has('gold'));
-  $('#f-stars').innerHTML = fchip('stars', '*', 'All', allOn('stars')) + [1, 2, 3, 4, 5].map(v => fchip('stars', String(v), v + '★', filt.stars.has(v))).join('')
-    + (unknown ? fchip('stars', '0', '? not set yet', filt.stars.has(0)) : '');
-}
-$('#filters').onclick = e => {
-  const b = e.target.closest('.fchip'); if (!b) return;
-  const g = b.dataset.g, v = b.dataset.v, s = filt[g];
-  if (v === '*') { const all = allOn(g); s.clear(); if (!all) UNIVERSE[g].forEach(x => s.add(x)); }
-  else { const key = g === 'stars' ? Number(v) : v; s.has(key) ? s.delete(key) : s.add(key); }
-  renderFilters(); render();
-};
-
-function render() {
-  const q = $('#q').value.trim();
-  const list = cards.filter(c => (!q || String(c.n).startsWith(q)) && filt.sets.has(c.set) && filt.rar.has(c.rarity) && filt.stars.has(c.stars));
-  const mine = set(me[mode]);
-  $('#modehelp').textContent = mode === 'lookingFor'
-    ? 'Cards you don\'t own yet. Only cards you don\'t own can be gifted or requested in a trade. Cards already in your sheet are preselected.'
-    : 'Duplicates only. Picking a card here removes it from your "Looking for" list. Cards already in your sheet are preselected.';
-  const shown = set(list.map(c => c.n));
-  const hidden = me[mode].filter(c => !shown.has(num(c))).length;
-  $('#count').textContent = `Showing ${list.length} of ${TOTAL} cards · ${me.lookingFor.length} looking for · ${me.forTrade.length} for trade`
-    + (hidden ? ` · ${hidden} selected hidden by the filters` : '');
-  let html = '', cur = '';
-  list.forEach(c => {
-    if (c.set !== cur) {
-      if (cur) html += '</div></div>';
-      cur = c.set;
-      const first = SETS.indexOf(c.set) * 9 + 1;
-      html += `<div class="setblock"><div class="sethead"><span>${esc(c.set)} set</span><span>${first}-${first + 8}</span></div><div class="grid">`;
-    }
-    const n = String(c.n), f = n + 'F';
-    const sel = mine.has(n) || mine.has(f);
-    html += `<div class="card ${c.rarity === 'gold' ? 'gold' : ''} ${sel ? 'sel' : ''}">
-      <div class="st">${c.stars ? '★'.repeat(c.stars) : '<span class="unk">★?</span>'}${c.rarity === 'gold' ? '<span class="goldtag">GOLD</span>' : ''}</div>
-      <div class="pic ${mine.has(f) ? 'foil' : ''}"><img src="cards/${n}.webp" alt="Card ${n}" loading="lazy" onerror="this.parentNode.classList.add('nofile')"></div>
-      <b>${n}</b>
-      <div class="nm">${esc(c.name)}</div>
-      <div class="t"><button data-c="${n}" class="${mine.has(n) ? 'on' : ''}">Normal</button>
-      <button data-c="${f}" class="f ${mine.has(f) ? 'on' : ''}">Foil</button></div></div>`;
-  });
-  if (cur) html += '</div></div>';
-  $('#grid').innerHTML = html || '<p class="mute">No cards match these filters. Turn on more sets, rarities or stars.</p>';
-}
-
-$('#grid').onclick = e => {
-  const c = e.target.dataset.c; if (!c) return;
-  const other = mode === 'lookingFor' ? 'forTrade' : 'lookingFor';
-  const s = set(me[mode]); s.has(c) ? s.delete(c) : s.add(c);
-  me[mode] = sortCodes([...s]);
-  if (s.has(c)) me[other] = me[other].filter(x => x !== c);   // can't be looking for and trading the same card
-  bad.forTrade = []; bad.lookingFor = []; dirty = true;
-  renderLists(); render(); updateSaveState();
-};
-$('#mode').onclick = e => { if (!e.target.dataset.m) return; mode = e.target.dataset.m;
-  document.querySelectorAll('#mode button').forEach(b => b.classList.toggle('on', b === e.target)); renderLists(); render(); };
-$('#q').oninput = render;
-
-// ---------- matches tab ----------
-function chips(arr) {
-  return arr.map(c => {
-    const g = isGold(c);
-    return `<span class="chip ${isFoil(c) ? 'f' : ''} ${g ? 'g' : ''} ${g && !goldOpen ? 'locked' : ''}">${label(c)}${g ? ' ★gold' : ''}</span>`;
-  }).join('');
-}
-
-// Matches: every card you're Looking for that another player's column marks FT on the same row.
-// Left = the card, right = who can provide it (user name + player ID) with a "Trade completed" button.
-let matchRows = [];   // [{code, providers: [user, ...]}] behind the buttons currently on screen
-function renderMatches() {
-  const box = $('#matches');
-  if (!me.lookingFor.length) {
-    matchRows = [];
-    box.innerHTML = '<p class="mute">Add at least one card to your Looking for list (My Lists or Cards tab), then come back here. Enter your user name and player ID on My Lists too, so you can mark trades as completed.</p>';
-    return;
+// "Trade completed": for one card, clear LF in the requesting player's column and FT in the other player's column.
+// Both cells are checked first, so a stale page can't wipe something that has changed in the meantime.
+function complete_(d) {
+  const row = rowFor_(String(d.card || '').trim().toUpperCase());
+  if (!row) return json_({ ok: false, error: 'Invalid card' });
+  const sh = ensureAlbum_();
+  const lastCol = Math.max(sh.getLastColumn(), 1);
+  const head = sh.getRange(1, 1, 2, lastCol).getValues();
+  const mine = findCol_(head, lastCol, d.playerId, d.username);
+  const theirs = findCol_(head, lastCol, d.targetPlayerId, d.targetUsername);
+  if (!mine || !theirs) return json_({ ok: false, error: 'Could not find both players in the sheet. Reload and try again.' });
+  if (mine === theirs) return json_({ ok: false, error: 'You can\'t trade with yourself.' });
+  const myCell = sh.getRange(row, mine), theirCell = sh.getRange(row, theirs);
+  if (String(myCell.getValue()).trim().toUpperCase() !== 'LF' || String(theirCell.getValue()).trim().toUpperCase() !== 'FT') {
+    return json_({ ok: false, error: 'The sheet has changed: this card is no longer LF for you and FT for them. Press Reload and check.' });
   }
-  const mineId = me.playerId.trim();
-  const others = users.filter(u => !(mineId && u.playerId && same(u.playerId, mineId)));
-  matchRows = me.lookingFor.map(code => ({code, providers: others.filter(u => u.forTrade.includes(code))})).filter(r => r.providers.length);
-  const missing = me.lookingFor.length - matchRows.length;
-  if (!matchRows.length) {
-    box.innerHTML = '<p class="mute">Nobody has marked FT on a card you\'re looking for yet. Press Reload to check for new updates.</p>';
-    return;
-  }
-  let html = `<p class="mute">${matchRows.length} of your ${me.lookingFor.length} Looking for cards can be provided by other players.</p>`;
-  html += matchRows.map((r, i) => {
-    const n = num(r.code), c = cardOf(r.code), foil = isFoil(r.code), g = isGold(r.code), locked = g && !goldOpen;
-    return `<div class="box mrow ${locked ? 'locked' : ''}">
-      <div class="mcard">
-        <div class="st">${c && c.stars ? '★'.repeat(c.stars) : ''}${g ? '<span class="goldtag">GOLD</span>' : ''}</div>
-        <div class="pic ${foil ? 'foil' : ''}"><img src="cards/${n}.webp" alt="Card ${n}" loading="lazy" onerror="this.parentNode.classList.add('nofile')"></div>
-        <b>#${n}</b><div class="mute">${foil ? 'Foil' : 'Normal'}</div>
-      </div>
-      <div class="mprov">
-        ${locked ? '<p class="mute" style="margin:0">Gold trading is closed right now, so this card can\'t be traded yet.</p>' : ''}
-        ${r.providers.map((u, j) => `<div class="prov"><span><b>${esc(u.username || 'unnamed')}</b> <span class="mute">Player ID: ${esc(u.playerId || 'not listed')}</span></span>
-          <button class="btn done" data-i="${i}" data-j="${j}" ${locked ? 'disabled' : ''}>Trade completed</button></div>`).join('')}
-      </div></div>`;
-  }).join('');
-  if (missing) html += `<p class="mute">${missing} more card${missing === 1 ? '' : 's'} on your Looking for list ${missing === 1 ? 'is' : 'are'} not marked FT by anyone yet.</p>`;
-  box.innerHTML = html;
+  myCell.clearContent();
+  theirCell.clearContent();
+  return json_({ ok: true });
 }
-
-// "Trade completed": clears FT on the other player's column and LF on yours, for that one card
-$('#matches').onclick = e => {
-  const b = e.target.closest('.done'); if (!b) return;
-  const r = matchRows[+b.dataset.i], u = r && r.providers[+b.dataset.j];
-  if (u) completeTrade(r.code, u, b);
-};
-async function completeTrade(code, u, btn) {
-  if (!scriptUrl) return toast('This sheet has no save script yet.');
-  if (!me.name || !me.playerId) return toast('Enter your user name and player ID on My Lists first');
-  if (dirty) return toast('Save your lists first, then mark the trade completed');
-  if (!confirm(`Mark this trade as completed?\n\nThis removes FT from ${u.username} (${u.playerId}) and LF from you for ${label(code)}.`)) return;
-  btn.disabled = true;
-  try {
-    const r = await (await fetch(scriptUrl, {method: 'POST', headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify({action: 'complete', playerId: me.playerId, username: me.name, targetPlayerId: u.playerId, targetUsername: u.username, card: code, website: $('#website').value})})).json();
-    if (!r.ok) throw new Error(r.error || 'Could not complete');
-    toast('Trade recorded');
-    await loadSheet(sheetId); setInfo(); banner(); renderFilters();
-    findMe(true);                       // reload my lists from the sheet; this also redraws Matches and the Cards grid
-  } catch (err) { toast('Failed: ' + err.message); renderMatches(); }
-}
-
-// ---------- tabs ----------
-document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
-  ['me', 'cards', 'match'].forEach(t => $('#t-' + t).hidden = t !== b.dataset.t);
-  if (b.dataset.t !== 'me') autoLoad();
-  if (b.dataset.t === 'cards') { renderLists(); render(); }
-  if (b.dataset.t === 'match') renderMatches();
-});
-
-// ---------- start ----------
-$('#uname').value = me.name = store.get('cs_name');
-$('#pid').value = me.playerId = store.get('cs_pid');
-const savedSheet = store.get('cs_sheet');
-if (savedSheet) connect(savedSheet, false); else showConnect('', '');
-</script>
-</body>
-</html>
