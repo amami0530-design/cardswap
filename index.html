@@ -11,11 +11,12 @@
 @media (prefers-color-scheme:dark){:root{--bg:#14211c;--panel:#1d2e27;--ink:#e8f3ec;--mute:#9bb2a6;--line:#2f453b;--goldbg:#4a3d12;--err:#ff8a8a}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Fredoka,system-ui,sans-serif;padding-bottom:70px}
-header{padding:18px 16px 8px;max-width:900px;margin:auto}
+header{padding:18px 16px 8px;max-width:1500px;margin:auto}
 h1{margin:0;font-size:28px;letter-spacing:-.5px}
 h1 span{color:var(--accent)}
 p.sub{margin:2px 0 0;color:var(--mute);font-size:14px}
-main{max-width:900px;margin:auto;padding:8px 12px}
+main{max-width:1500px;margin:auto;padding:8px 12px}
+#connect,#t-me,#t-match,#goldbanner{max-width:900px}
 nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--panel);border-top:1px solid var(--line);z-index:5}
 nav button{flex:1;border:0;background:none;color:var(--mute);font:600 15px Fredoka,sans-serif;padding:14px 4px;cursor:pointer}
 nav button.on{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
@@ -25,23 +26,33 @@ input{flex:1;min-width:120px}
 button.btn{cursor:pointer;font-weight:600}
 button.btn:disabled{opacity:.5;cursor:not-allowed}
 button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.seg{display:flex;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;width:100%}
+.seg{display:flex;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;width:100%;max-width:900px}
 .seg button{flex:1;border:0;padding:10px;font:600 15px Fredoka,sans-serif;background:var(--panel);color:var(--mute);cursor:pointer}
 .seg button.on{background:var(--ink);color:var(--bg)}
 .banner{border-radius:10px;padding:8px 12px;font-size:14px;margin:8px 0;background:var(--goldbg);border:1.5px solid var(--gold)}
 .banner.open{background:var(--ok);border-color:var(--ok);color:#fff}
 .topbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:4px 0}
+.filters .frow{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+.filters .flabel{flex:0 0 52px;font-weight:700;font-size:14px;color:var(--mute);padding-top:5px}
+.fchips{display:flex;flex-wrap:wrap;gap:6px}
+.fchip{border:1.5px solid var(--line);background:var(--panel);color:var(--mute);border-radius:999px;padding:3px 12px;font:600 13px Fredoka,sans-serif;cursor:pointer}
+.fchip.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+#grid{overflow-x:auto;padding-bottom:6px}
+.setblock{min-width:972px}
 .sethead{margin:14px 0 6px;font-weight:700;font-size:15px;display:flex;justify-content:space-between;color:var(--mute)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.grid{display:grid;grid-template-columns:repeat(9,minmax(100px,1fr));gap:8px}
 .card{background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:6px;text-align:center}
 .card.gold{background:var(--goldbg);border-color:var(--gold)}
+.card.sel{box-shadow:0 0 0 2.5px var(--accent)}
 .card b{font-size:20px;display:block}
 .pic{position:relative;border-radius:8px;overflow:hidden;margin-bottom:4px;background:var(--bg);min-height:60px}
 .pic img{display:block;width:100%;height:auto}
 .pic.nofile img{display:none}
 .pic.foil::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,107,74,.35),rgba(244,185,40,.3),rgba(63,201,165,.35),rgba(91,140,255,.35));mix-blend-mode:overlay;pointer-events:none}
 .card .nm{font-size:11px;color:var(--mute);min-height:14px;line-height:1.2}
-.st{color:var(--gold);font-size:12px;letter-spacing:1px;min-height:16px}
+.st{color:var(--gold);font-size:13px;letter-spacing:1px;min-height:18px;margin-bottom:2px;white-space:nowrap}
+.st .unk{color:var(--mute);letter-spacing:0}
+.st .goldtag{font-size:10px;font-weight:700;letter-spacing:.5px;color:#a87b00;margin-left:4px}
 .card .t{display:flex;gap:4px;margin-top:4px}
 .card .t button{flex:1;border:1.5px solid var(--line);border-radius:8px;padding:6px 0;font:600 12px Fredoka,sans-serif;background:none;color:var(--mute);cursor:pointer}
 .card .t button.on{background:var(--ok);border-color:var(--ok);color:#fff}
@@ -55,8 +66,14 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .chip.f{background:linear-gradient(120deg,#ffd6cc,#fff0bd,#c9f2e6,#d4e2ff);color:#1c2a38}
 .chip.g{box-shadow:inset 0 0 0 1.5px var(--gold)}
 .chip.locked{opacity:.45;text-decoration:line-through}
+.mrow{display:flex;gap:14px;align-items:flex-start}
+.mrow.locked{opacity:.8}
+.mcard{flex:0 0 118px;text-align:center}
+.mcard .pic{margin-bottom:4px}
+.mprov{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.prov{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:10px;flex-wrap:wrap}
 .mute{color:var(--mute);font-size:13px}
-.err{color:var(--err);font-size:13px;min-height:0}
+.err{color:var(--err);font-size:13px;min-height:0;margin:4px 0 0}
 .ok{color:var(--ok);font-size:13px}
 .msg{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:9;display:none}
 .hp{position:absolute;left:-9999px}
@@ -132,12 +149,24 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
     <section id="t-cards" hidden>
       <div class="seg" id="mode"><button data-m="lookingFor" class="on">Looking for</button><button data-m="forTrade">For trade</button></div>
       <p class="mute" id="modehelp"></p>
-      <div class="row">
-        <input id="q" type="search" inputmode="numeric" placeholder="Card number">
-        <select id="fset"><option value="">All sets</option></select>
-        <select id="fr"><option value="">All rarity</option><option value="normal">Normal</option><option value="gold">Gold</option></select>
+
+      <div class="box" style="max-width:900px">
+        <div class="row" style="margin-top:0"><b id="ceLabel"></b><span class="mute" id="ceWho"></span></div>
+        <input id="in-cards" autocomplete="off" style="width:100%">
+        <p class="err" id="err-cards"></p>
+        <div class="row">
+          <button class="btn primary" id="save2">Save to sheet</button>
+          <span class="mute" id="saveInfo2"></span>
+        </div>
       </div>
-      <p class="mute" id="count"></p>
+
+      <div class="box filters" id="filters">
+        <div class="frow"><span class="flabel">Sets</span><div class="fchips" id="f-sets"></div></div>
+        <div class="frow"><span class="flabel">Rarity</span><div class="fchips" id="f-rar"></div></div>
+        <div class="frow"><span class="flabel">Stars</span><div class="fchips" id="f-stars"></div></div>
+        <div class="row"><input id="q" type="search" inputmode="numeric" placeholder="Card number" style="max-width:200px"><span class="mute" id="count"></span></div>
+      </div>
+
       <div id="grid"></div>
     </section>
 
@@ -156,14 +185,21 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 
 <script>
 // Autumn Tales album: 15 sets x 9 cards = 135. Every card also has a foil version.
-// Card names and star levels aren't final on the wiki yet; add them in the Cards tab of the sheet when known.
+// Star level depends on the card NUMBER, same as the New Journey album on the wiki (the Autumn Tales
+// page still shows placeholders). One digit per card, 1-135, nine per set:
+const STARS = '111111112' + '111111122' + '111111222' + '111112223' + '111122233' + '111222233' + '112223334' + '112223334'
+            + '122233344' + '222333445' + '223334445' + '233334455' + '234444555' + '334444555' + '344445555';
+// Card names are still placeholders on the wiki. Names, stars or rarity can be overridden in the sheet's
+// "Cards" tab (number | name | stars | rarity); a blank cell keeps the default.
 const SETS = ['Solpear','Sparkrow','Droppit','Taptail','Voltkit','Ringtail','Maskfry','Tindercub','Punchimp','Manteeny','Flameow','Kittazap','Cheerling','Momopo','Sparkit'];
 const TOTAL = SETS.length * 9;
 const GOLD = new Set([63,72,80,90,96,98,106,108,113,114,117,121,123,125,131,134,135]);
 const LISTS = ['forTrade', 'lookingFor'];
+const LIST_NAME = {forTrade: 'For trade', lookingFor: 'Looking for'};
+const UNIVERSE = {sets: SETS, rar: ['normal', 'gold'], stars: [1, 2, 3, 4, 5, 0]};   // stars 0 = unknown
 
 const $ = s => document.querySelector(s);
-const baseCards = () => Array.from({length: TOTAL}, (_, i) => ({n: i + 1, set: SETS[Math.floor(i / 9)], name: '', stars: 0, rarity: GOLD.has(i + 1) ? 'gold' : 'normal'}));
+const baseCards = () => Array.from({length: TOTAL}, (_, i) => ({n: i + 1, set: SETS[Math.floor(i / 9)], name: '', stars: Number(STARS[i]) || 0, rarity: GOLD.has(i + 1) ? 'gold' : 'normal'}));
 
 // ---------- state ----------
 let sheetId = '';
@@ -173,8 +209,11 @@ let scriptUrl = '';
 let goldOpen = false;
 let mode = 'lookingFor';
 let dirty = false;
+let loadedKey = '';                                  // which name|PUID the lists were last loaded for
 const me = {name: '', playerId: '', forTrade: [], lookingFor: []};
-const bad = {forTrade: [], lookingFor: []};   // unrecognised tokens typed in each box
+const bad = {forTrade: [], lookingFor: []};          // unrecognised tokens typed in each box
+// card filters (multi-select). Default: every set, both rarities, and 4 and 5 stars (plus unknown stars).
+const filt = {sets: new Set(SETS), rar: new Set(['normal', 'gold']), stars: new Set([4, 5, 0])};
 
 // ---------- helpers ----------
 const set = a => new Set(a);
@@ -183,10 +222,10 @@ const isFoil = c => String(c).endsWith('F');
 const cardOf = c => cards[num(c) - 1];
 const isGold = c => { const k = cardOf(c); return !!k && k.rarity === 'gold'; };
 const label = c => '#' + num(c) + (isFoil(c) ? ' foil' : '');
-const split = s => String(s == null ? '' : s).split(',').map(x => x.trim()).filter(Boolean);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
 const toast = t => { const m = $('#msg'); m.textContent = t; m.style.display = 'block'; setTimeout(() => m.style.display = 'none', 2600); };
 const sortCodes = a => [...new Set(a)].sort((x, y) => num(x) - num(y) || (isFoil(x) - isFoil(y)));
+const same = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
 
 // Cookie (with a localStorage backup for browsers or file:// pages that block cookies)
 const store = {
@@ -282,14 +321,13 @@ async function loadSheet(id) {
     readTab(id, 'Cards', ['number']).catch(() => null),
     readTab(id, 'Settings', ['key', 'value']).catch(() => null)
   ]);
-  const u = grid ? parseGrid(grid) : null;
-  users = u || [];
+  users = grid ? parseGrid(grid) : [];
   cards = baseCards();
   (c || []).forEach(o => {
     const k = cards[Number(o.number) - 1]; if (!k) return;
     if (o.name) k.name = String(o.name);
-    if (Number(o.stars) > 0) k.stars = Number(o.stars);
-    const r = String(o.rarity || '').toLowerCase(); if (r) k.rarity = r;
+    const st = Math.round(Number(o.stars)); if (st >= 1 && st <= 5) k.stars = st;
+    const r = String(o.rarity || '').trim().toLowerCase(); if (r) k.rarity = r.indexOf('gold') === 0 ? 'gold' : 'normal';
   });
   const settings = {};
   (s || []).forEach(r => { if (r.key) settings[String(r.key)] = String(r.value).trim(); });
@@ -305,6 +343,8 @@ function showConnect(err, prefill) {
   if (prefill) $('#sheetUrl').value = prefill;
 }
 
+function setInfo() { $('#sheetInfo').textContent = 'Sheet …' + sheetId.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's'); }
+
 async function connect(id, fromSubmit) {
   $('#sheetGo').disabled = true;
   try {
@@ -312,12 +352,12 @@ async function connect(id, fromSubmit) {
     sheetId = id;
     store.set('cs_sheet', id);
     $('#connect').hidden = true; $('#app').hidden = false; $('#nav').hidden = false;
-    $('#sheetInfo').textContent = 'Sheet …' + id.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's');
-    banner(); render(); renderLists(); renderMatches(); updateSaveState();
+    setInfo(); banner(); renderFilters();
+    // preselect: pull this player's saved lists from the sheet (unless they have unsaved edits)
+    if (me.name && me.playerId && !dirty) findMe(true);
+    renderLists(); render(); renderMatches(); updateSaveState();
     if (!info.hasAlbumTab) toast('No "' + ALBUM_TAB + '" tab found in this sheet (A1 should say USERNAME, A2 PUID)');
     else if (fromSubmit) toast('Sheet connected');
-    // returning user: reload their lists automatically
-    if (!fromSubmit && me.name && me.playerId) findMe(true);
   } catch (e) {
     showConnect('Could not read that sheet. Check the link and make sure sharing is set to "Anyone with the link can view".', 'https://docs.google.com/spreadsheets/d/' + id);
   } finally {
@@ -342,7 +382,7 @@ function findMe(quiet) {
   if (!name || !pid) { if (!quiet) toast('Enter a user name and player ID'); return; }
   me.name = name; me.playerId = pid;
   store.set('cs_name', name); store.set('cs_pid', pid);
-  const same = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+  loadedKey = (name + '|' + pid).toLowerCase();
   // a player is the column whose user name AND player ID both match
   const u = users.find(x => x.playerId && same(x.playerId, pid) && same(x.username, name));
   const who = $('#who');
@@ -366,73 +406,95 @@ async function loadMine() {
   const name = $('#uname').value.trim(), pid = $('#pid').value.trim();
   if (!name || !pid) return toast('Enter a user name and player ID');
   $('#loadMe').disabled = true;
-  try { await loadSheet(sheetId); banner(); setInfo(); }
+  try { await loadSheet(sheetId); banner(); setInfo(); renderFilters(); }
   catch (e) { toast('Could not refresh the sheet, using what was loaded earlier'); }
   $('#loadMe').disabled = false;
   findMe(false);
 }
-function setInfo() { $('#sheetInfo').textContent = 'Sheet …' + sheetId.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's'); }
 $('#loadMe').onclick = loadMine;
 ['uname', 'pid'].forEach(id => $('#' + id).onkeydown = e => { if (e.key === 'Enter') loadMine(); });
+
+// when the Cards or Matches tab opens, make sure this player's saved lists are already preselected
+function autoLoad() {
+  const key = (me.name + '|' + me.playerId).toLowerCase();
+  if (me.name && me.playerId && !dirty && key !== loadedKey) findMe(true);
+}
 
 function overlap() {
   const s = set(me.lookingFor);
   return me.forTrade.filter(c => s.has(c));
 }
 
-function renderLists(skipInputs) {
+function errFor(k) {
   const dup = set(overlap());
-  LISTS.forEach(k => {
-    if (!skipInputs) $('#in-' + k).value = me[k].join(', ');
-    $('#chips-' + k).innerHTML = chips(me[k]);
-    const msgs = [];
-    if (bad[k].length) msgs.push('Not a card (1-' + TOTAL + ', optional F): ' + bad[k].join(', '));
-    const here = me[k].filter(c => dup.has(c));
-    if (here.length) msgs.push('Also in your ' + (k === 'forTrade' ? 'Looking for' : 'For trade') + ' list: ' + here.map(label).join(', ') + '. A card can\'t be both.');
-    $('#err-' + k).textContent = msgs.join(' ');
-  });
-  $('#count').textContent = `${me.lookingFor.length} looking for · ${me.forTrade.length} for trade`;
+  const msgs = [];
+  if (bad[k].length) msgs.push('Not a card (1-' + TOTAL + ', optional F): ' + bad[k].join(', '));
+  const here = me[k].filter(c => dup.has(c));
+  if (here.length) msgs.push('Also in your ' + LIST_NAME[k === 'forTrade' ? 'lookingFor' : 'forTrade'] + ' list: ' + here.map(label).join(', ') + '. A card can\'t be both.');
+  return msgs.join(' ');
 }
 
+// skipEl = the input being typed in right now, so its text isn't rewritten under the cursor
+function renderLists(skipEl) {
+  LISTS.forEach(k => {
+    const inp = $('#in-' + k);
+    if (inp !== skipEl) inp.value = me[k].join(', ');
+    $('#chips-' + k).innerHTML = chips(me[k]);
+    $('#err-' + k).textContent = errFor(k);
+  });
+  // the Cards tab editor shows whichever list is being picked
+  const ci = $('#in-cards');
+  if (ci !== skipEl) ci.value = me[mode].join(', ');
+  ci.placeholder = mode === 'forTrade' ? 'e.g. 7, 22, 90F' : 'e.g. 3, 12F, 40';
+  $('#ceLabel').textContent = LIST_NAME[mode];
+  $('#ceWho').textContent = (me.name && me.playerId) ? `Editing as ${me.name} (${me.playerId})` : 'Enter your user name and player ID on the My Lists tab to load and save.';
+  $('#err-cards').textContent = errFor(mode);
+}
+
+function typed(k, inp) {
+  const p = parseList(inp.value);
+  me[k] = p.ok; bad[k] = p.bad; dirty = true;
+  renderLists(inp); render(); updateSaveState();
+}
 LISTS.forEach(k => {
   const inp = $('#in-' + k);
-  inp.oninput = () => {
-    const p = parseList(inp.value);
-    me[k] = p.ok; bad[k] = p.bad; dirty = true;
-    renderLists(true); render(); updateSaveState();
-  };
+  inp.oninput = () => typed(k, inp);
   inp.onblur = () => { bad[k] = []; renderLists(); };   // tidy the text, dropping anything unrecognised
 });
-['uname', 'pid'].forEach(id => $('#' + id).oninput = () => { me.name = $('#uname').value.trim(); me.playerId = $('#pid').value.trim(); updateSaveState(); });
+$('#in-cards').oninput = () => typed(mode, $('#in-cards'));
+$('#in-cards').onblur = () => { bad[mode] = []; renderLists(); };
+['uname', 'pid'].forEach(id => $('#' + id).oninput = () => { me.name = $('#uname').value.trim(); me.playerId = $('#pid').value.trim(); renderLists($('#' + id)); updateSaveState(); });
 
 function problems() {
   const p = [];
   if (!scriptUrl) p.push('This sheet has no save script yet. The sheet owner needs to open the Apps Script web app URL once.');
-  if (!me.name || !/^[A-Za-z0-9_-]{1,30}$/.test(me.playerId)) p.push('Enter a user name and a player ID (letters, numbers, - or _).');
+  if (!me.name || !/^[A-Za-z0-9_-]{1,30}$/.test(me.playerId)) p.push('Enter a user name and a player ID (letters, numbers, - or _) on the My Lists tab.');
   if (bad.forTrade.length || bad.lookingFor.length) p.push('Fix the unrecognised card entries.');
   if (overlap().length) p.push('Remove cards that are in both lists.');
   return p;
 }
 function updateSaveState() {
   const p = problems();
-  $('#save').disabled = p.length > 0;
-  $('#saveInfo').textContent = p.length ? p[0] : (dirty ? 'Unsaved changes' : '');
+  const info = p.length ? p[0] : (dirty ? 'Unsaved changes' : '');
+  ['save', 'save2'].forEach(id => $('#' + id).disabled = p.length > 0);
+  $('#saveInfo').textContent = info; $('#saveInfo2').textContent = info;
 }
 
-$('#save').onclick = async () => {
+async function doSave() {
   const p = problems(); if (p.length) return toast(p[0]);
-  $('#save').disabled = true;
+  $('#save').disabled = true; $('#save2').disabled = true;
   try {
     const r = await (await fetch(scriptUrl, {method: 'POST', headers: {'Content-Type': 'text/plain'},
       body: JSON.stringify({playerId: me.playerId, username: me.name, forTrade: me.forTrade.join(','), lookingFor: me.lookingFor.join(','), website: $('#website').value})})).json();
     if (!r.ok) throw new Error(r.error || 'Save failed');
     store.set('cs_name', me.name); store.set('cs_pid', me.playerId);
     dirty = false; toast('Saved to the sheet');
-    await loadSheet(sheetId); renderMatches(); banner();
-    $('#sheetInfo').textContent = 'Sheet …' + sheetId.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's');
+    await loadSheet(sheetId); renderMatches(); banner(); setInfo(); renderFilters(); render();
   } catch (e) { toast('Save failed: ' + e.message); }
   updateSaveState();
-};
+}
+$('#save').onclick = doSave;
+$('#save2').onclick = doSave;
 
 // ---------- cards tab ----------
 function banner() {
@@ -443,33 +505,55 @@ function banner() {
     : 'Gold trading is closed. Gold cards can only be traded or gifted in special windows (48h notice, then one day). Blue cards can be traded any day.';
 }
 
+// multi-select filter chips
+function fchip(g, v, text, on) { return `<button class="fchip ${on ? 'on' : ''}" data-g="${g}" data-v="${esc(v)}">${esc(text)}</button>`; }
+function allOn(g) { return UNIVERSE[g].every(x => filt[g].has(x)); }
+function renderFilters() {
+  const unknown = cards.some(c => !c.stars);
+  $('#f-sets').innerHTML = fchip('sets', '*', 'All', allOn('sets')) + SETS.map(s => fchip('sets', s, s, filt.sets.has(s))).join('');
+  $('#f-rar').innerHTML = fchip('rar', '*', 'All', allOn('rar')) + fchip('rar', 'normal', 'Normal', filt.rar.has('normal')) + fchip('rar', 'gold', 'Gold', filt.rar.has('gold'));
+  $('#f-stars').innerHTML = fchip('stars', '*', 'All', allOn('stars')) + [1, 2, 3, 4, 5].map(v => fchip('stars', String(v), v + '★', filt.stars.has(v))).join('')
+    + (unknown ? fchip('stars', '0', '? not set yet', filt.stars.has(0)) : '');
+}
+$('#filters').onclick = e => {
+  const b = e.target.closest('.fchip'); if (!b) return;
+  const g = b.dataset.g, v = b.dataset.v, s = filt[g];
+  if (v === '*') { const all = allOn(g); s.clear(); if (!all) UNIVERSE[g].forEach(x => s.add(x)); }
+  else { const key = g === 'stars' ? Number(v) : v; s.has(key) ? s.delete(key) : s.add(key); }
+  renderFilters(); render();
+};
+
 function render() {
-  const q = $('#q').value.trim(), fs = $('#fset').value, fr = $('#fr').value;
-  const list = cards.filter(c => (!q || String(c.n).startsWith(q)) && (!fs || c.set === fs) && (!fr || c.rarity === fr));
+  const q = $('#q').value.trim();
+  const list = cards.filter(c => (!q || String(c.n).startsWith(q)) && filt.sets.has(c.set) && filt.rar.has(c.rarity) && filt.stars.has(c.stars));
   const mine = set(me[mode]);
   $('#modehelp').textContent = mode === 'lookingFor'
-    ? 'Cards you don\'t own yet. Only cards you don\'t own can be gifted or requested in a trade.'
-    : 'Duplicates only. Picking a card here removes it from your "Looking for" list.';
-  $('#count').textContent = `${me.lookingFor.length} looking for · ${me.forTrade.length} for trade`;
+    ? 'Cards you don\'t own yet. Only cards you don\'t own can be gifted or requested in a trade. Cards already in your sheet are preselected.'
+    : 'Duplicates only. Picking a card here removes it from your "Looking for" list. Cards already in your sheet are preselected.';
+  const shown = set(list.map(c => c.n));
+  const hidden = me[mode].filter(c => !shown.has(num(c))).length;
+  $('#count').textContent = `Showing ${list.length} of ${TOTAL} cards · ${me.lookingFor.length} looking for · ${me.forTrade.length} for trade`
+    + (hidden ? ` · ${hidden} selected hidden by the filters` : '');
   let html = '', cur = '';
   list.forEach(c => {
     if (c.set !== cur) {
-      if (cur) html += '</div>';
+      if (cur) html += '</div></div>';
       cur = c.set;
       const first = SETS.indexOf(c.set) * 9 + 1;
-      html += `<div class="sethead"><span>${esc(c.set)} set</span><span>${first}-${first + 8}</span></div><div class="grid">`;
+      html += `<div class="setblock"><div class="sethead"><span>${esc(c.set)} set</span><span>${first}-${first + 8}</span></div><div class="grid">`;
     }
     const n = String(c.n), f = n + 'F';
-    html += `<div class="card ${c.rarity === 'gold' ? 'gold' : ''}">
+    const sel = mine.has(n) || mine.has(f);
+    html += `<div class="card ${c.rarity === 'gold' ? 'gold' : ''} ${sel ? 'sel' : ''}">
+      <div class="st">${c.stars ? '★'.repeat(c.stars) : '<span class="unk">★?</span>'}${c.rarity === 'gold' ? '<span class="goldtag">GOLD</span>' : ''}</div>
       <div class="pic ${mine.has(f) ? 'foil' : ''}"><img src="cards/${n}.webp" alt="Card ${n}" loading="lazy" onerror="this.parentNode.classList.add('nofile')"></div>
       <b>${n}</b>
       <div class="nm">${esc(c.name)}</div>
-      <div class="st">${c.stars ? '★'.repeat(c.stars) : (c.rarity === 'gold' ? 'GOLD' : '')}</div>
       <div class="t"><button data-c="${n}" class="${mine.has(n) ? 'on' : ''}">Normal</button>
       <button data-c="${f}" class="f ${mine.has(f) ? 'on' : ''}">Foil</button></div></div>`;
   });
-  if (cur) html += '</div>';
-  $('#grid').innerHTML = html || '<p class="mute">No cards match.</p>';
+  if (cur) html += '</div></div>';
+  $('#grid').innerHTML = html || '<p class="mute">No cards match these filters. Turn on more sets, rarities or stars.</p>';
 }
 
 $('#grid').onclick = e => {
@@ -482,9 +566,8 @@ $('#grid').onclick = e => {
   renderLists(); render(); updateSaveState();
 };
 $('#mode').onclick = e => { if (!e.target.dataset.m) return; mode = e.target.dataset.m;
-  document.querySelectorAll('#mode button').forEach(b => b.classList.toggle('on', b === e.target)); render(); };
-SETS.forEach(s => $('#fset').insertAdjacentHTML('beforeend', `<option>${s}</option>`));
-['q', 'fset', 'fr'].forEach(id => $('#' + id).oninput = render);
+  document.querySelectorAll('#mode button').forEach(b => b.classList.toggle('on', b === e.target)); renderLists(); render(); };
+$('#q').oninput = render;
 
 // ---------- matches tab ----------
 function chips(arr) {
@@ -494,30 +577,71 @@ function chips(arr) {
   }).join('');
 }
 
+// Matches: every card you're Looking for that another player's column marks FT on the same row.
+// Left = the card, right = who can provide it (user name + player ID) with a "Trade completed" button.
+let matchRows = [];   // [{code, providers: [user, ...]}] behind the buttons currently on screen
 function renderMatches() {
-  const w = set(me.lookingFor), h = set(me.forTrade);
-  if (!w.size && !h.size) { $('#matches').innerHTML = '<p class="mute">Fill in your lists on the My Lists or Cards tab, then come back here.</p>'; return; }
-  const ok = c => goldOpen || !isGold(c);   // tradeable right now
-  const mineId = me.playerId.toLowerCase();
-  const res = users.filter(u => !mineId || u.playerId.toLowerCase() !== mineId).map(u => {
-    const get = u.forTrade.filter(c => w.has(c));
-    const give = u.lookingFor.filter(c => h.has(c));
-    const getNow = get.filter(ok).length, giveNow = give.filter(ok).length;
-    return {u, get, give, getNow, giveNow, score: Math.min(getNow, giveNow) * 100 + getNow + giveNow};
-  }).filter(r => r.get.length || r.give.length).sort((a, b) => b.score - a.score);
-  const kind = r => r.getNow && r.giveNow ? ['Swap', 'swap']
-    : r.getNow ? ['They can gift you', ''] : r.giveNow ? ['You can gift them', ''] : ['Gold only, waiting for a gold window', ''];
-  $('#matches').innerHTML = res.map(r => { const [k, cls] = kind(r); return `<div class="box"><h3>${esc(r.u.username)} <span class="tag ${cls}">${k}</span></h3>
-    <div class="mute">You get (${r.get.length})</div><div class="chips">${chips(r.get) || '<span class="mute">nothing yet</span>'}</div>
-    <div class="mute">You give (${r.give.length})</div><div class="chips">${chips(r.give) || '<span class="mute">nothing yet</span>'}</div>
-    <div class="row"><span class="mute">Player ID: <b>${esc(r.u.playerId || 'not listed')}</b></span></div></div>`; }).join('')
-    || '<p class="mute">No matches yet. Press Reload to pick up new players.</p>';
+  const box = $('#matches');
+  if (!me.lookingFor.length) {
+    matchRows = [];
+    box.innerHTML = '<p class="mute">Add at least one card to your Looking for list (My Lists or Cards tab), then come back here. Enter your user name and player ID on My Lists too, so you can mark trades as completed.</p>';
+    return;
+  }
+  const mineId = me.playerId.trim();
+  const others = users.filter(u => !(mineId && u.playerId && same(u.playerId, mineId)));
+  matchRows = me.lookingFor.map(code => ({code, providers: others.filter(u => u.forTrade.includes(code))})).filter(r => r.providers.length);
+  const missing = me.lookingFor.length - matchRows.length;
+  if (!matchRows.length) {
+    box.innerHTML = '<p class="mute">Nobody has marked FT on a card you\'re looking for yet. Press Reload to check for new updates.</p>';
+    return;
+  }
+  let html = `<p class="mute">${matchRows.length} of your ${me.lookingFor.length} Looking for cards can be provided by other players.</p>`;
+  html += matchRows.map((r, i) => {
+    const n = num(r.code), c = cardOf(r.code), foil = isFoil(r.code), g = isGold(r.code), locked = g && !goldOpen;
+    return `<div class="box mrow ${locked ? 'locked' : ''}">
+      <div class="mcard">
+        <div class="st">${c && c.stars ? '★'.repeat(c.stars) : ''}${g ? '<span class="goldtag">GOLD</span>' : ''}</div>
+        <div class="pic ${foil ? 'foil' : ''}"><img src="cards/${n}.webp" alt="Card ${n}" loading="lazy" onerror="this.parentNode.classList.add('nofile')"></div>
+        <b>#${n}</b><div class="mute">${foil ? 'Foil' : 'Normal'}</div>
+      </div>
+      <div class="mprov">
+        ${locked ? '<p class="mute" style="margin:0">Gold trading is closed right now, so this card can\'t be traded yet.</p>' : ''}
+        ${r.providers.map((u, j) => `<div class="prov"><span><b>${esc(u.username || 'unnamed')}</b> <span class="mute">Player ID: ${esc(u.playerId || 'not listed')}</span></span>
+          <button class="btn done" data-i="${i}" data-j="${j}" ${locked ? 'disabled' : ''}>Trade completed</button></div>`).join('')}
+      </div></div>`;
+  }).join('');
+  if (missing) html += `<p class="mute">${missing} more card${missing === 1 ? '' : 's'} on your Looking for list ${missing === 1 ? 'is' : 'are'} not marked FT by anyone yet.</p>`;
+  box.innerHTML = html;
+}
+
+// "Trade completed": clears FT on the other player's column and LF on yours, for that one card
+$('#matches').onclick = e => {
+  const b = e.target.closest('.done'); if (!b) return;
+  const r = matchRows[+b.dataset.i], u = r && r.providers[+b.dataset.j];
+  if (u) completeTrade(r.code, u, b);
+};
+async function completeTrade(code, u, btn) {
+  if (!scriptUrl) return toast('This sheet has no save script yet.');
+  if (!me.name || !me.playerId) return toast('Enter your user name and player ID on My Lists first');
+  if (dirty) return toast('Save your lists first, then mark the trade completed');
+  if (!confirm(`Mark this trade as completed?\n\nThis removes FT from ${u.username} (${u.playerId}) and LF from you for ${label(code)}.`)) return;
+  btn.disabled = true;
+  try {
+    const r = await (await fetch(scriptUrl, {method: 'POST', headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({action: 'complete', playerId: me.playerId, username: me.name, targetPlayerId: u.playerId, targetUsername: u.username, card: code, website: $('#website').value})})).json();
+    if (!r.ok) throw new Error(r.error || 'Could not complete');
+    toast('Trade recorded');
+    await loadSheet(sheetId); setInfo(); banner(); renderFilters();
+    findMe(true);                       // reload my lists from the sheet; this also redraws Matches and the Cards grid
+  } catch (err) { toast('Failed: ' + err.message); renderMatches(); }
 }
 
 // ---------- tabs ----------
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
   ['me', 'cards', 'match'].forEach(t => $('#t-' + t).hidden = t !== b.dataset.t);
+  if (b.dataset.t !== 'me') autoLoad();
+  if (b.dataset.t === 'cards') { renderLists(); render(); }
   if (b.dataset.t === 'match') renderMatches();
 });
 
