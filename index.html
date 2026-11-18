@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Critter Swap – Clash of Critters card trading</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐾</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eaf4ee;--panel:#fff;--ink:#1c2a38;--mute:#5d6e7c;--line:#cfe0d6;--accent:#ff6b4a;--gold:#f4b928;--goldbg:#fff4cc;--ok:#1f9d6b;--err:#d64545}
+@media (prefers-color-scheme:dark){:root{--bg:#14211c;--panel:#1d2e27;--ink:#e8f3ec;--mute:#9bb2a6;--line:#2f453b;--goldbg:#4a3d12;--err:#ff8a8a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Fredoka,system-ui,sans-serif;padding-bottom:70px}
+header{padding:18px 16px 8px;max-width:900px;margin:auto}
+h1{margin:0;font-size:28px;letter-spacing:-.5px}
+h1 span{color:var(--accent)}
+p.sub{margin:2px 0 0;color:var(--mute);font-size:14px}
+main{max-width:900px;margin:auto;padding:8px 12px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--panel);border-top:1px solid var(--line);z-index:5}
+nav button{flex:1;border:0;background:none;color:var(--mute);font:600 15px Fredoka,sans-serif;padding:14px 4px;cursor:pointer}
+nav button.on{color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+input,select,button.btn{font:inherit;padding:9px 11px;border:1.5px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink)}
+input{flex:1;min-width:120px}
+button.btn{cursor:pointer;font-weight:600}
+button.btn:disabled{opacity:.5;cursor:not-allowed}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.seg{display:flex;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;width:100%}
+.seg button{flex:1;border:0;padding:10px;font:600 15px Fredoka,sans-serif;background:var(--panel);color:var(--mute);cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.banner{border-radius:10px;padding:8px 12px;font-size:14px;margin:8px 0;background:var(--goldbg);border:1.5px solid var(--gold)}
+.banner.open{background:var(--ok);border-color:var(--ok);color:#fff}
+.topbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:4px 0}
+.sethead{margin:14px 0 6px;font-weight:700;font-size:15px;display:flex;justify-content:space-between;color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.card{background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:6px;text-align:center}
+.card.gold{background:var(--goldbg);border-color:var(--gold)}
+.card b{font-size:20px;display:block}
+.pic{position:relative;border-radius:8px;overflow:hidden;margin-bottom:4px;background:var(--bg);min-height:60px}
+.pic img{display:block;width:100%;height:auto}
+.pic.nofile img{display:none}
+.pic.foil::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,107,74,.35),rgba(244,185,40,.3),rgba(63,201,165,.35),rgba(91,140,255,.35));mix-blend-mode:overlay;pointer-events:none}
+.card .nm{font-size:11px;color:var(--mute);min-height:14px;line-height:1.2}
+.st{color:var(--gold);font-size:12px;letter-spacing:1px;min-height:16px}
+.card .t{display:flex;gap:4px;margin-top:4px}
+.card .t button{flex:1;border:1.5px solid var(--line);border-radius:8px;padding:6px 0;font:600 12px Fredoka,sans-serif;background:none;color:var(--mute);cursor:pointer}
+.card .t button.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.card .t button.f.on{background:linear-gradient(120deg,#ff6b4a,#f4b928,#3fc9a5,#5b8cff);border-color:transparent}
+.box{background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
+.box h3{margin:0 0 4px;font-size:18px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{font-size:12px;font-weight:600;border-radius:8px;padding:2px 8px;background:var(--bg);color:var(--mute)}
+.tag.swap{background:var(--ok);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px}
+.chip{background:var(--bg);border-radius:8px;padding:2px 8px;font-size:13px}
+.chip.f{background:linear-gradient(120deg,#ffd6cc,#fff0bd,#c9f2e6,#d4e2ff);color:#1c2a38}
+.chip.g{box-shadow:inset 0 0 0 1.5px var(--gold)}
+.chip.locked{opacity:.45;text-decoration:line-through}
+.mute{color:var(--mute);font-size:13px}
+.err{color:var(--err);font-size:13px;min-height:0}
+.ok{color:var(--ok);font-size:13px}
+.msg{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:9;display:none}
+.hp{position:absolute;left:-9999px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <h1>Critter <span>Swap</span></h1>
+  <p class="sub">Unofficial fan site. Keep your trade lists in a shared Google Sheet and find who to trade with.</p>
+</header>
+<main>
+
+  <!-- STEP 1: CONNECT A SHEET (shown until a sheet is saved in the cookie) -->
+  <section id="connect" hidden>
+    <div class="box">
+      <h3>Connect your trading sheet</h3>
+      <div class="row">
+        <input id="sheetUrl" type="url" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off">
+        <button class="btn primary" id="sheetGo">Submit</button>
+      </div>
+      <p class="err" id="connectErr"></p>
+      <p class="mute">Paste the sheet's Share link. It must be shared as "Anyone with the link can view" (a "publish to web" link won't work). Your link is remembered in a cookie, so you only enter it once on this device.</p>
+    </div>
+  </section>
+
+  <!-- STEP 2: THE APP -->
+  <div id="app" hidden>
+    <div class="topbar">
+      <span class="mute" id="sheetInfo"></span>
+      <span class="row" style="margin:0">
+        <button class="btn" id="reload">Reload</button>
+        <button class="btn" id="change">Change sheet</button>
+      </span>
+    </div>
+    <div class="banner" id="goldbanner"></div>
+
+    <!-- MY LISTS TAB (default) -->
+    <section id="t-me">
+      <div class="box">
+        <h3>My profile</h3>
+        <div class="row">
+          <input id="uname" maxlength="30" placeholder="User name" autocomplete="nickname">
+          <input id="pid" maxlength="30" placeholder="Player ID" autocomplete="off">
+          <button class="btn primary" id="loadMe">Load my lists</button>
+        </div>
+        <input class="hp" id="website" tabindex="-1" autocomplete="off">
+        <p class="mute" id="who"></p>
+      </div>
+
+      <div class="box">
+        <h3>For trade <span class="tag">your duplicates</span></h3>
+        <input id="in-forTrade" placeholder="e.g. 7, 22, 90F" autocomplete="off" style="width:100%">
+        <div class="chips" id="chips-forTrade"></div>
+        <p class="err" id="err-forTrade"></p>
+      </div>
+
+      <div class="box">
+        <h3>Looking for <span class="tag">cards you don't own</span></h3>
+        <input id="in-lookingFor" placeholder="e.g. 3, 12F, 40" autocomplete="off" style="width:100%">
+        <div class="chips" id="chips-lookingFor"></div>
+        <p class="err" id="err-lookingFor"></p>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" id="save">Save to sheet</button>
+        <span class="mute" id="saveInfo"></span>
+      </div>
+      <p class="mute">Type card numbers separated by commas. Add F for foil (12F). A list like [3, 12F, 40] works too. You can also tap cards on the Cards tab.</p>
+    </section>
+
+    <!-- CARDS TAB -->
+    <section id="t-cards" hidden>
+      <div class="seg" id="mode"><button data-m="lookingFor" class="on">Looking for</button><button data-m="forTrade">For trade</button></div>
+      <p class="mute" id="modehelp"></p>
+      <div class="row">
+        <input id="q" type="search" inputmode="numeric" placeholder="Card number">
+        <select id="fset"><option value="">All sets</option></select>
+        <select id="fr"><option value="">All rarity</option><option value="normal">Normal</option><option value="gold">Gold</option></select>
+      </div>
+      <p class="mute" id="count"></p>
+      <div id="grid"></div>
+    </section>
+
+    <!-- MATCHES TAB -->
+    <section id="t-match" hidden>
+      <div id="matches"></div>
+    </section>
+  </div>
+</main>
+<nav id="nav" hidden>
+  <button data-t="me" class="on">My Lists</button>
+  <button data-t="cards">Cards</button>
+  <button data-t="match">Matches</button>
+</nav>
+<div class="msg" id="msg"></div>
+
+<script>
+// Autumn Tales album: 15 sets x 9 cards = 135. Every card also has a foil version.
+// Card names and star levels aren't final on the wiki yet; add them in the Cards tab of the sheet when known.
+const SETS = ['Solpear','Sparkrow','Droppit','Taptail','Voltkit','Ringtail','Maskfry','Tindercub','Punchimp','Manteeny','Flameow','Kittazap','Cheerling','Momopo','Sparkit'];
+const TOTAL = SETS.length * 9;
+const GOLD = new Set([63,72,80,90,96,98,106,108,113,114,117,121,123,125,131,134,135]);
+const LISTS = ['forTrade', 'lookingFor'];
+
+const $ = s => document.querySelector(s);
+const baseCards = () => Array.from({length: TOTAL}, (_, i) => ({n: i + 1, set: SETS[Math.floor(i / 9)], name: '', stars: 0, rarity: GOLD.has(i + 1) ? 'gold' : 'normal'}));
+
+// ---------- state ----------
+let sheetId = '';
+let cards = baseCards();
+let users = [];
+let scriptUrl = '';
+let goldOpen = false;
+let mode = 'lookingFor';
+let dirty = false;
+const me = {name: '', playerId: '', forTrade: [], lookingFor: []};
+const bad = {forTrade: [], lookingFor: []};   // unrecognised tokens typed in each box
+
+// ---------- helpers ----------
+const set = a => new Set(a);
+const num = c => parseInt(c);
+const isFoil = c => String(c).endsWith('F');
+const cardOf = c => cards[num(c) - 1];
+const isGold = c => { const k = cardOf(c); return !!k && k.rarity === 'gold'; };
+const label = c => '#' + num(c) + (isFoil(c) ? ' foil' : '');
+const split = s => String(s == null ? '' : s).split(',').map(x => x.trim()).filter(Boolean);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const toast = t => { const m = $('#msg'); m.textContent = t; m.style.display = 'block'; setTimeout(() => m.style.display = 'none', 2600); };
+const sortCodes = a => [...new Set(a)].sort((x, y) => num(x) - num(y) || (isFoil(x) - isFoil(y)));
+
+// Cookie (with a localStorage backup for browsers or file:// pages that block cookies)
+const store = {
+  get(k) {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + k + '=([^;]*)'));
+    if (m) return decodeURIComponent(m[1]);
+    try { return localStorage.getItem(k) || ''; } catch (e) { return ''; }
+  },
+  set(k, v) {
+    document.cookie = `${k}=${encodeURIComponent(v)}; max-age=${365 * 86400}; path=/; SameSite=Lax` + (location.protocol === 'https:' ? '; Secure' : '');
+    try { localStorage.setItem(k, v); } catch (e) {}
+  },
+  del(k) {
+    document.cookie = `${k}=; max-age=0; path=/`;
+    try { localStorage.removeItem(k); } catch (e) {}
+  }
+};
+
+// "3, 12F, [40]" -> {ok: ['3','12F','40'], bad: [...]}
+function parseList(text) {
+  const toks = String(text || '').replace(/[\[\]"']/g, ' ').split(/[\s,;]+/).filter(Boolean);
+  const ok = [], badTokens = [];
+  toks.forEach(t => {
+    const m = /^#?(\d{1,3})(f)?$/i.exec(t);
+    const n = m && +m[1];
+    if (m && n >= 1 && n <= TOTAL) ok.push(n + (m[2] ? 'F' : '')); else badTokens.push(t);
+  });
+  return {ok: sortCodes(ok), bad: badTokens};
+}
+
+function sheetIdFrom(text) {
+  const t = String(text || '').trim();
+  if (/\/spreadsheets\/d\/e\//.test(t)) return 'PUBLISHED';   // "publish to web" link: has a different ID, can't be read live
+  const m = t.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  return /^[a-zA-Z0-9_-]{20,}$/.test(t) ? t : '';
+}
+
+// The album tab is a grid: column A = card numbers, then one column per player.
+//   row 1 = username, row 2 = player ID (PUID), then rows 3-137 = cards 1-135, rows 138-272 = 1F-135F.
+//   A player's cell holds FT (for trade) or LF (looking for), or stays blank.
+const ALBUM_TAB = 'Latest-Album';
+function parseGrid(rows) {
+  const out = [];
+  const width = Math.max(0, ...rows.map(r => r.length));
+  for (let c = 1; c < width; c++) {
+    const name = String((rows[0] && rows[0][c]) ?? '').trim();
+    const pid = String((rows[1] && rows[1][c]) ?? '').trim();
+    if (!name && !pid) continue;
+    const forTrade = [], lookingFor = [];
+    for (let i = 0; i < TOTAL * 2; i++) {
+      const mark = String((rows[i + 2] && rows[i + 2][c]) ?? '').trim().toUpperCase();
+      if (mark !== 'FT' && mark !== 'LF') continue;
+      const code = i < TOTAL ? String(i + 1) : (i - TOTAL + 1) + 'F';
+      (mark === 'FT' ? forTrade : lookingFor).push(code);
+    }
+    out.push({playerId: pid, username: name, forTrade, lookingFor});
+  }
+  return out;
+}
+
+// ---------- reading the public sheet ----------
+async function readTab(id, tab, expect) {
+  const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tab)}`;
+  const text = await (await fetch(url)).text();
+  const m = text.match(/setResponse\(([\s\S]*)\);?\s*$/);
+  if (!m) throw new Error('not readable');
+  const j = JSON.parse(m[1]);
+  if (j.status === 'error') return null;                         // readable sheet, but no such tab
+  let labels = j.table.cols.map(c => String(c.label || '').trim());
+  let rows = j.table.rows.map(r => (r.c || []).map(c => (c && c.v != null) ? c.v : ''));
+  if (labels.every(l => !l) && rows.length) labels = rows.shift().map(v => String(v).trim());
+  if (!expect.every(k => labels.includes(k))) return null;      // tab missing or has other columns
+  return rows.map(r => Object.fromEntries(labels.map((l, i) => [l, r[i] === undefined ? '' : r[i]])));
+}
+
+// The album grid, as raw rows (no header detection). Returns null if the tab isn't there.
+async function readGrid(id) {
+  const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(ALBUM_TAB)}`;
+  const text = await (await fetch(url)).text();
+  const m = text.match(/setResponse\(([\s\S]*)\);?\s*$/);
+  if (!m) throw new Error('not readable');
+  const j = JSON.parse(m[1]);
+  if (j.status === 'error') return null;
+  const rows = j.table.rows.map(r => (r.c || []).map(c => (c && c.v != null) ? c.v : ''));
+  const first = rows[0] && String(rows[0][0]).trim().toUpperCase();
+  return first === 'USERNAME' ? rows : null;   // a wrong tab name can silently return the first tab
+}
+
+async function loadSheet(id) {
+  const [grid, c, s] = await Promise.all([
+    readGrid(id),                                          // throws when Google refuses (sheet not shared)
+    readTab(id, 'Cards', ['number']).catch(() => null),
+    readTab(id, 'Settings', ['key', 'value']).catch(() => null)
+  ]);
+  const u = grid ? parseGrid(grid) : null;
+  users = u || [];
+  cards = baseCards();
+  (c || []).forEach(o => {
+    const k = cards[Number(o.number) - 1]; if (!k) return;
+    if (o.name) k.name = String(o.name);
+    if (Number(o.stars) > 0) k.stars = Number(o.stars);
+    const r = String(o.rarity || '').toLowerCase(); if (r) k.rarity = r;
+  });
+  const settings = {};
+  (s || []).forEach(r => { if (r.key) settings[String(r.key)] = String(r.value).trim(); });
+  scriptUrl = /^https:\/\/script\.google\.com\//.test(settings.scriptUrl || '') ? settings.scriptUrl : '';
+  goldOpen = (settings.goldTrading || '').toLowerCase() === 'on';
+  return {hasAlbumTab: !!grid};
+}
+
+// ---------- connecting ----------
+function showConnect(err, prefill) {
+  $('#app').hidden = true; $('#nav').hidden = true; $('#connect').hidden = false;
+  $('#connectErr').textContent = err || '';
+  if (prefill) $('#sheetUrl').value = prefill;
+}
+
+async function connect(id, fromSubmit) {
+  $('#sheetGo').disabled = true;
+  try {
+    const info = await loadSheet(id);
+    sheetId = id;
+    store.set('cs_sheet', id);
+    $('#connect').hidden = true; $('#app').hidden = false; $('#nav').hidden = false;
+    $('#sheetInfo').textContent = 'Sheet …' + id.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's');
+    banner(); render(); renderLists(); renderMatches(); updateSaveState();
+    if (!info.hasAlbumTab) toast('No "' + ALBUM_TAB + '" tab found in this sheet (A1 should say USERNAME, A2 PUID)');
+    else if (fromSubmit) toast('Sheet connected');
+    // returning user: reload their lists automatically
+    if (!fromSubmit && me.name && me.playerId) findMe(true);
+  } catch (e) {
+    showConnect('Could not read that sheet. Check the link and make sure sharing is set to "Anyone with the link can view".', 'https://docs.google.com/spreadsheets/d/' + id);
+  } finally {
+    $('#sheetGo').disabled = false;
+  }
+}
+
+$('#sheetGo').onclick = () => {
+  const id = sheetIdFrom($('#sheetUrl').value);
+  if (id === 'PUBLISHED') return ($('#connectErr').textContent = 'That is a "publish to web" link. In Google Sheets use Share > "Anyone with the link" > Viewer, then paste that Share link (it looks like docs.google.com/spreadsheets/d/…/edit).');
+  if (!id) return ($('#connectErr').textContent = 'That doesn\'t look like a Google Sheets link.');
+  $('#connectErr').textContent = '';
+  connect(id, true);
+};
+$('#sheetUrl').onkeydown = e => { if (e.key === 'Enter') $('#sheetGo').click(); };
+$('#reload').onclick = async () => { await connect(sheetId, false); toast('Reloaded'); };
+$('#change').onclick = () => { store.del('cs_sheet'); sheetId = ''; showConnect('', ''); $('#sheetUrl').value = ''; };
+
+// ---------- my lists ----------
+function findMe(quiet) {
+  const name = $('#uname').value.trim(), pid = $('#pid').value.trim();
+  if (!name || !pid) { if (!quiet) toast('Enter a user name and player ID'); return; }
+  me.name = name; me.playerId = pid;
+  store.set('cs_name', name); store.set('cs_pid', pid);
+  const u = users.find(x => x.playerId && x.playerId.toLowerCase() === pid.toLowerCase());
+  const who = $('#who');
+  if (u) {
+    LISTS.forEach(k => { me[k] = sortCodes(u[k]); });
+    dirty = false;
+    who.className = 'ok';
+    who.textContent = 'Loaded your lists' + (u.username && u.username.toLowerCase() !== name.toLowerCase() ? ` (this player ID is saved as "${u.username}")` : '') + '.';
+  } else {
+    who.className = 'mute';
+    who.textContent = 'No lists saved for this player ID yet. Fill in the boxes below and press Save.';
+  }
+  renderLists(); render(); renderMatches(); updateSaveState();
+}
+$('#loadMe').onclick = () => findMe(false);
+['uname', 'pid'].forEach(id => $('#' + id).onkeydown = e => { if (e.key === 'Enter') findMe(false); });
+
+function overlap() {
+  const s = set(me.lookingFor);
+  return me.forTrade.filter(c => s.has(c));
+}
+
+function renderLists(skipInputs) {
+  const dup = set(overlap());
+  LISTS.forEach(k => {
+    if (!skipInputs) $('#in-' + k).value = me[k].join(', ');
+    $('#chips-' + k).innerHTML = chips(me[k]);
+    const msgs = [];
+    if (bad[k].length) msgs.push('Not a card (1-' + TOTAL + ', optional F): ' + bad[k].join(', '));
+    const here = me[k].filter(c => dup.has(c));
+    if (here.length) msgs.push('Also in your ' + (k === 'forTrade' ? 'Looking for' : 'For trade') + ' list: ' + here.map(label).join(', ') + '. A card can\'t be both.');
+    $('#err-' + k).textContent = msgs.join(' ');
+  });
+  $('#count').textContent = `${me.lookingFor.length} looking for · ${me.forTrade.length} for trade`;
+}
+
+LISTS.forEach(k => {
+  const inp = $('#in-' + k);
+  inp.oninput = () => {
+    const p = parseList(inp.value);
+    me[k] = p.ok; bad[k] = p.bad; dirty = true;
+    renderLists(true); render(); updateSaveState();
+  };
+  inp.onblur = () => { bad[k] = []; renderLists(); };   // tidy the text, dropping anything unrecognised
+});
+['uname', 'pid'].forEach(id => $('#' + id).oninput = () => { me.name = $('#uname').value.trim(); me.playerId = $('#pid').value.trim(); updateSaveState(); });
+
+function problems() {
+  const p = [];
+  if (!scriptUrl) p.push('This sheet has no save script yet. The sheet owner needs to open the Apps Script web app URL once.');
+  if (!me.name || !/^[A-Za-z0-9_-]{1,30}$/.test(me.playerId)) p.push('Enter a user name and a player ID (letters, numbers, - or _).');
+  if (bad.forTrade.length || bad.lookingFor.length) p.push('Fix the unrecognised card entries.');
+  if (overlap().length) p.push('Remove cards that are in both lists.');
+  return p;
+}
+function updateSaveState() {
+  const p = problems();
+  $('#save').disabled = p.length > 0;
+  $('#saveInfo').textContent = p.length ? p[0] : (dirty ? 'Unsaved changes' : '');
+}
+
+$('#save').onclick = async () => {
+  const p = problems(); if (p.length) return toast(p[0]);
+  $('#save').disabled = true;
+  try {
+    const r = await (await fetch(scriptUrl, {method: 'POST', headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({playerId: me.playerId, username: me.name, forTrade: me.forTrade.join(','), lookingFor: me.lookingFor.join(','), website: $('#website').value})})).json();
+    if (!r.ok) throw new Error(r.error || 'Save failed');
+    store.set('cs_name', me.name); store.set('cs_pid', me.playerId);
+    dirty = false; toast('Saved to the sheet');
+    await loadSheet(sheetId); renderMatches(); banner();
+    $('#sheetInfo').textContent = 'Sheet …' + sheetId.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's');
+  } catch (e) { toast('Save failed: ' + e.message); }
+  updateSaveState();
+};
+
+// ---------- cards tab ----------
+function banner() {
+  const b = $('#goldbanner');
+  b.className = 'banner' + (goldOpen ? ' open' : '');
+  b.textContent = goldOpen
+    ? 'Gold trading is OPEN right now. Gold cards can be traded or gifted today only.'
+    : 'Gold trading is closed. Gold cards can only be traded or gifted in special windows (48h notice, then one day). Blue cards can be traded any day.';
+}
+
+function render() {
+  const q = $('#q').value.trim(), fs = $('#fset').value, fr = $('#fr').value;
+  const list = cards.filter(c => (!q || String(c.n).startsWith(q)) && (!fs || c.set === fs) && (!fr || c.rarity === fr));
+  const mine = set(me[mode]);
+  $('#modehelp').textContent = mode === 'lookingFor'
+    ? 'Cards you don\'t own yet. Only cards you don\'t own can be gifted or requested in a trade.'
+    : 'Duplicates only. Picking a card here removes it from your "Looking for" list.';
+  $('#count').textContent = `${me.lookingFor.length} looking for · ${me.forTrade.length} for trade`;
+  let html = '', cur = '';
+  list.forEach(c => {
+    if (c.set !== cur) {
+      if (cur) html += '</div>';
+      cur = c.set;
+      const first = SETS.indexOf(c.set) * 9 + 1;
+      html += `<div class="sethead"><span>${esc(c.set)} set</span><span>${first}-${first + 8}</span></div><div class="grid">`;
+    }
+    const n = String(c.n), f = n + 'F';
+    html += `<div class="card ${c.rarity === 'gold' ? 'gold' : ''}">
+      <div class="pic ${mine.has(f) ? 'foil' : ''}"><img src="cards/${n}.webp" alt="Card ${n}" loading="lazy" onerror="this.parentNode.classList.add('nofile')"></div>
+      <b>${n}</b>
+      <div class="nm">${esc(c.name)}</div>
+      <div class="st">${c.stars ? '★'.repeat(c.stars) : (c.rarity === 'gold' ? 'GOLD' : '')}</div>
+      <div class="t"><button data-c="${n}" class="${mine.has(n) ? 'on' : ''}">Normal</button>
+      <button data-c="${f}" class="f ${mine.has(f) ? 'on' : ''}">Foil</button></div></div>`;
+  });
+  if (cur) html += '</div>';
+  $('#grid').innerHTML = html || '<p class="mute">No cards match.</p>';
+}
+
+$('#grid').onclick = e => {
+  const c = e.target.dataset.c; if (!c) return;
+  const other = mode === 'lookingFor' ? 'forTrade' : 'lookingFor';
+  const s = set(me[mode]); s.has(c) ? s.delete(c) : s.add(c);
+  me[mode] = sortCodes([...s]);
+  if (s.has(c)) me[other] = me[other].filter(x => x !== c);   // can't be looking for and trading the same card
+  bad.forTrade = []; bad.lookingFor = []; dirty = true;
+  renderLists(); render(); updateSaveState();
+};
+$('#mode').onclick = e => { if (!e.target.dataset.m) return; mode = e.target.dataset.m;
+  document.querySelectorAll('#mode button').forEach(b => b.classList.toggle('on', b === e.target)); render(); };
+SETS.forEach(s => $('#fset').insertAdjacentHTML('beforeend', `<option>${s}</option>`));
+['q', 'fset', 'fr'].forEach(id => $('#' + id).oninput = render);
+
+// ---------- matches tab ----------
+function chips(arr) {
+  return arr.map(c => {
+    const g = isGold(c);
+    return `<span class="chip ${isFoil(c) ? 'f' : ''} ${g ? 'g' : ''} ${g && !goldOpen ? 'locked' : ''}">${label(c)}${g ? ' ★gold' : ''}</span>`;
+  }).join('');
+}
+
+function renderMatches() {
+  const w = set(me.lookingFor), h = set(me.forTrade);
+  if (!w.size && !h.size) { $('#matches').innerHTML = '<p class="mute">Fill in your lists on the My Lists or Cards tab, then come back here.</p>'; return; }
+  const ok = c => goldOpen || !isGold(c);   // tradeable right now
+  const mineId = me.playerId.toLowerCase();
+  const res = users.filter(u => !mineId || u.playerId.toLowerCase() !== mineId).map(u => {
+    const get = u.forTrade.filter(c => w.has(c));
+    const give = u.lookingFor.filter(c => h.has(c));
+    const getNow = get.filter(ok).length, giveNow = give.filter(ok).length;
+    return {u, get, give, getNow, giveNow, score: Math.min(getNow, giveNow) * 100 + getNow + giveNow};
+  }).filter(r => r.get.length || r.give.length).sort((a, b) => b.score - a.score);
+  const kind = r => r.getNow && r.giveNow ? ['Swap', 'swap']
+    : r.getNow ? ['They can gift you', ''] : r.giveNow ? ['You can gift them', ''] : ['Gold only, waiting for a gold window', ''];
+  $('#matches').innerHTML = res.map(r => { const [k, cls] = kind(r); return `<div class="box"><h3>${esc(r.u.username)} <span class="tag ${cls}">${k}</span></h3>
+    <div class="mute">You get (${r.get.length})</div><div class="chips">${chips(r.get) || '<span class="mute">nothing yet</span>'}</div>
+    <div class="mute">You give (${r.give.length})</div><div class="chips">${chips(r.give) || '<span class="mute">nothing yet</span>'}</div>
+    <div class="row"><span class="mute">Player ID: <b>${esc(r.u.playerId || 'not listed')}</b></span></div></div>`; }).join('')
+    || '<p class="mute">No matches yet. Press Reload to pick up new players.</p>';
+}
+
+// ---------- tabs ----------
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+  ['me', 'cards', 'match'].forEach(t => $('#t-' + t).hidden = t !== b.dataset.t);
+  if (b.dataset.t === 'match') renderMatches();
+});
+
+// ---------- start ----------
+$('#uname').value = me.name = store.get('cs_name');
+$('#pid').value = me.playerId = store.get('cs_pid');
+const savedSheet = store.get('cs_sheet');
+if (savedSheet) connect(savedSheet, false); else showConnect('', '');
+</script>
+</body>
+</html>
