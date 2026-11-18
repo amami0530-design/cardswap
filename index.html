@@ -186,6 +186,7 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 <div class="msg" id="msg"></div>
 
 <script src="logic.js"></script>
+<script src="config.js" onerror="window.CRITTER_CONFIG={}"></script>
 <script>
 // Autumn Tales album: 15 sets x 9 cards = 135. Every card also has a foil version.
 // Star level depends on the card NUMBER, same as the New Journey album on the wiki (the Autumn Tales
@@ -320,15 +321,20 @@ function showConnect(err, prefill) {
   if (prefill) $('#sheetUrl').value = prefill;
 }
 
-const BUILD = '2026-11-18b';   // shown in the top bar, so you can tell which version of this page is actually being served
+const BUILD = '2026-11-18c';   // shown in the top bar, so you can tell which version of this page is actually being served
 function setInfo() { $('#sheetInfo').textContent = 'Sheet …' + sheetId.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's') + ' · loaded ' + lastLoad.at + ' via ' + lastLoad.source + ' · build ' + BUILD; }
 
+// The site's default sheet from config.js (empty if none). Accepts a full link or a bare sheet ID.
+function defaultSheet() {
+  const id = sheetIdFrom((window.CRITTER_CONFIG && window.CRITTER_CONFIG.sheet) || '');
+  return id === 'PUBLISHED' ? '' : id;
+}
 async function connect(id, fromSubmit) {
   $('#sheetGo').disabled = true;
   try {
     const info = await loadSheet(id);
     sheetId = id;
-    store.set('cs_sheet', id);
+    if (id === defaultSheet()) store.del('cs_sheet'); else store.set('cs_sheet', id);   // the default isn't saved, so changing it in config.js reaches everyone
     $('#connect').hidden = true; $('#app').hidden = false; $('#nav').hidden = false;
     setInfo(); banner(); renderFilters();
     // preselect: pull this player's saved lists from the sheet (unless they have unsaved edits)
@@ -353,7 +359,7 @@ $('#sheetGo').onclick = () => {
 };
 $('#sheetUrl').onkeydown = e => { if (e.key === 'Enter') $('#sheetGo').click(); };
 $('#reload').onclick = async () => { await connect(sheetId, false); toast('Reloaded'); };
-$('#change').onclick = () => { store.del('cs_sheet'); sheetId = ''; showConnect('', ''); $('#sheetUrl').value = ''; };
+$('#change').onclick = () => { store.del('cs_sheet'); sheetId = ''; const d = defaultSheet(); showConnect('', d ? 'https://docs.google.com/spreadsheets/d/' + d : ''); };
 
 // ---------- my lists ----------
 function findMe(quiet) {
@@ -647,7 +653,7 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
 // ---------- start ----------
 $('#uname').value = me.name = store.get('cs_name');
 $('#pid').value = me.playerId = store.get('cs_pid');
-const savedSheet = store.get('cs_sheet');
+const savedSheet = store.get('cs_sheet') || defaultSheet();
 if (savedSheet) connect(savedSheet, false); else showConnect('', '');
 </script>
 </body>
