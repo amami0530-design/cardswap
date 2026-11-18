@@ -289,8 +289,8 @@ function parseGrid(rows) {
 
 // ---------- reading the public sheet ----------
 async function readTab(id, tab, expect) {
-  const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tab)}`;
-  const text = await (await fetch(url)).text();
+  const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tab)}&_=${Date.now()}`;
+  const text = await (await fetch(url, {cache: 'no-store'})).text();
   const m = text.match(/setResponse\(([\s\S]*)\);?\s*$/);
   if (!m) throw new Error('not readable');
   const j = JSON.parse(m[1]);
@@ -304,23 +304,44 @@ async function readTab(id, tab, expect) {
 
 // The album grid, as raw rows (no header detection). Returns null if the tab isn't there.
 async function readGrid(id) {
-  const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(ALBUM_TAB)}`;
-  const text = await (await fetch(url)).text();
+  const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&headers=0&sheet=${encodeURIComponent(ALBUM_TAB)}&_=${Date.now()}`;
+  const text = await (await fetch(url, {cache: 'no-store'})).text();
   const m = text.match(/setResponse\(([\s\S]*)\);?\s*$/);
   if (!m) throw new Error('not readable');
   const j = JSON.parse(m[1]);
   if (j.status === 'error') return null;
   const rows = j.table.rows.map(r => (r.c || []).map(c => (c && c.v != null) ? c.v : ''));
-  const first = rows[0] && String(rows[0][0]).trim().toUpperCase();
-  return first === 'USERNAME' ? rows : null;   // a wrong tab name can silently return the first tab
+  // Google blanks cells whose type doesn't match their column's majority type, and column A mixes numbers
+  // (1-135) with text (1F, USERNAME, PUID). So A1 may come back empty: only reject a cell that says something else.
+  const first = String((rows[0] && rows[0][0]) ?? '').trim().toUpperCase();
+  return (!rows.length || (first && first !== 'USERNAME')) ? null : rows;   // a wrong tab name can silently return another tab
 }
 
+// Preferred read: ask the Apps Script web app, which reads the live sheet directly
+// (exact text values, never cached). Falls back to the sheet's public read endpoint if that isn't available.
+async function readViaScript() {
+  const r = await fetch(scriptUrl + (scriptUrl.includes('?') ? '&' : '?') + 'action=grid&_=' + Date.now(), {cache: 'no-store'});
+  const j = await r.json();
+  if (!j || !j.ok || !Array.isArray(j.rows)) throw new Error('script has no grid');
+  return j.rows;
+}
+
+let lastLoad = {source: '', at: ''};
 async function loadSheet(id) {
-  const [grid, c, s] = await Promise.all([
-    readGrid(id),                                          // throws when Google refuses (sheet not shared)
+  const [c, s] = await Promise.all([
     readTab(id, 'Cards', ['number']).catch(() => null),
     readTab(id, 'Settings', ['key', 'value']).catch(() => null)
   ]);
+  const settings = {};
+  (s || []).forEach(r => { if (r.key) settings[String(r.key)] = String(r.value).trim(); });
+  scriptUrl = /^https:\/\/script\.google\.com\//.test(settings.scriptUrl || '') ? settings.scriptUrl : '';
+  goldOpen = (settings.goldTrading || '').toLowerCase() === 'on';
+
+  let grid = null, source = 'sheet';
+  if (scriptUrl) { try { grid = await readViaScript(); source = 'script'; } catch (e) { grid = null; } }
+  if (!grid) { grid = await readGrid(id); source = 'sheet'; }   // throws when Google refuses (sheet not shared)
+  lastLoad = {source, at: new Date().toLocaleTimeString()};
+
   users = grid ? parseGrid(grid) : [];
   cards = baseCards();
   (c || []).forEach(o => {
@@ -329,10 +350,6 @@ async function loadSheet(id) {
     const st = Math.round(Number(o.stars)); if (st >= 1 && st <= 5) k.stars = st;
     const r = String(o.rarity || '').trim().toLowerCase(); if (r) k.rarity = r.indexOf('gold') === 0 ? 'gold' : 'normal';
   });
-  const settings = {};
-  (s || []).forEach(r => { if (r.key) settings[String(r.key)] = String(r.value).trim(); });
-  scriptUrl = /^https:\/\/script\.google\.com\//.test(settings.scriptUrl || '') ? settings.scriptUrl : '';
-  goldOpen = (settings.goldTrading || '').toLowerCase() === 'on';
   return {hasAlbumTab: !!grid};
 }
 
@@ -343,7 +360,8 @@ function showConnect(err, prefill) {
   if (prefill) $('#sheetUrl').value = prefill;
 }
 
-function setInfo() { $('#sheetInfo').textContent = 'Sheet …' + sheetId.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's'); }
+const BUILD = '2026-11-18a';   // shown in the top bar, so you can tell which version of this page is actually being served
+function setInfo() { $('#sheetInfo').textContent = 'Sheet …' + sheetId.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's') + ' · loaded ' + lastLoad.at + ' via ' + lastLoad.source + ' · build ' + BUILD; }
 
 async function connect(id, fromSubmit) {
   $('#sheetGo').disabled = true;
@@ -355,6 +373,7 @@ async function connect(id, fromSubmit) {
     setInfo(); banner(); renderFilters();
     // preselect: pull this player's saved lists from the sheet (unless they have unsaved edits)
     if (me.name && me.playerId && !dirty) findMe(true);
+    else if (!me.name || !me.playerId) { $('#who').className = 'mute'; $('#who').textContent = 'Enter your user name and player ID, then press Load my lists.'; }
     renderLists(); render(); renderMatches(); updateSaveState();
     if (!info.hasAlbumTab) toast('No "' + ALBUM_TAB + '" tab found in this sheet (A1 should say USERNAME, A2 PUID)');
     else if (fromSubmit) toast('Sheet connected');
@@ -463,7 +482,11 @@ LISTS.forEach(k => {
 });
 $('#in-cards').oninput = () => typed(mode, $('#in-cards'));
 $('#in-cards').onblur = () => { bad[mode] = []; renderLists(); };
-['uname', 'pid'].forEach(id => $('#' + id).oninput = () => { me.name = $('#uname').value.trim(); me.playerId = $('#pid').value.trim(); renderLists($('#' + id)); updateSaveState(); });
+['uname', 'pid'].forEach(id => $('#' + id).oninput = () => {
+  me.name = $('#uname').value.trim(); me.playerId = $('#pid').value.trim();
+  store.set('cs_name', me.name); store.set('cs_pid', me.playerId);   // remembered right away, not only after Load or Save
+  renderLists($('#' + id)); updateSaveState();
+});
 
 function problems() {
   const p = [];
