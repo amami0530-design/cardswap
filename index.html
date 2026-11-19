@@ -6,9 +6,12 @@
 <title>Critter Swap – Clash of Critters card trading</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐾</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<script>try{var m=document.cookie.match(/(?:^|; )cs_theme=([^;]*)/),t=m?decodeURIComponent(m[1]):localStorage.getItem('cs_theme');if(t&&t!=='night')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <style>
-:root{--bg:#eaf4ee;--panel:#fff;--ink:#1c2a38;--mute:#5d6e7c;--line:#cfe0d6;--accent:#ff6b4a;--gold:#f4b928;--goldbg:#fff4cc;--ok:#1f9d6b;--err:#d64545}
-@media (prefers-color-scheme:dark){:root{--bg:#14211c;--panel:#1d2e27;--ink:#e8f3ec;--mute:#9bb2a6;--line:#2f453b;--goldbg:#4a3d12;--err:#ff8a8a}}
+:root{color-scheme:dark;--bg:#14211c;--panel:#1d2e27;--ink:#e8f1ec;--mute:#9db3a8;--line:#2f4a3f;--accent:#ff7a59;--gold:#f4b928;--goldbg:#3b3217;--goldtxt:#f4b928;--ok:#3ecf8e;--err:#ff6b6b;--onaccent:#fff;--onok:#0f2a1e}
+:root[data-theme=autumn]{color-scheme:light;--bg:#f7efe3;--panel:#fffaf2;--ink:#3a2a1f;--mute:#7a6656;--line:#e6d5bd;--accent:#d9531e;--gold:#f4b928;--goldbg:#fbe9b9;--goldtxt:#8a6200;--ok:#5b8a3c;--err:#b8322a;--onaccent:#fff;--onok:#fff}
+:root[data-theme=berry]{color-scheme:light;--bg:#f6f1fb;--panel:#fff;--ink:#2a2140;--mute:#6d6585;--line:#ddd3ee;--accent:#e8336d;--gold:#f4b928;--goldbg:#fff4cc;--goldtxt:#a87b00;--ok:#1fa97a;--err:#d63a3a;--onaccent:#fff;--onok:#fff}
+:root[data-theme=ocean]{color-scheme:light;--bg:#eaf3f8;--panel:#fff;--ink:#17303f;--mute:#587386;--line:#cfe0ea;--accent:#ff7a3d;--gold:#f4b928;--goldbg:#fff4cc;--goldtxt:#a87b00;--ok:#1f9d6b;--err:#d64545;--onaccent:#fff;--onok:#fff}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Fredoka,system-ui,sans-serif;padding-bottom:70px}
 header{padding:18px 16px 8px;max-width:1500px;margin:auto}
@@ -25,12 +28,14 @@ input,select,button.btn{font:inherit;padding:9px 11px;border:1.5px solid var(--l
 input{flex:1;min-width:120px}
 button.btn{cursor:pointer;font-weight:600}
 button.btn:disabled{opacity:.5;cursor:not-allowed}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--onaccent)}
+.themebar{display:flex;align-items:center;gap:6px;float:right;font-size:13px;color:var(--mute)}
+.themebar select{padding:5px 8px;font-size:13px;border-radius:8px}
 .seg{display:flex;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;width:100%;max-width:900px}
 .seg button{flex:1;border:0;padding:10px;font:600 15px Fredoka,sans-serif;background:var(--panel);color:var(--mute);cursor:pointer}
 .seg button.on{background:var(--ink);color:var(--bg)}
 .banner{border-radius:10px;padding:8px 12px;font-size:14px;margin:8px 0;background:var(--goldbg);border:1.5px solid var(--gold)}
-.banner.open{background:var(--ok);border-color:var(--ok);color:#fff}
+.banner.open{background:var(--ok);border-color:var(--ok);color:var(--onok)}
 .topbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:4px 0}
 .filters .frow{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
 .filters .flabel{flex:0 0 52px;font-weight:700;font-size:14px;color:var(--mute);padding-top:5px}
@@ -38,12 +43,16 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .fchip{border:1.5px solid var(--line);background:var(--panel);color:var(--mute);border-radius:999px;padding:3px 12px;font:600 13px Fredoka,sans-serif;cursor:pointer}
 .fchip.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 #grid{overflow-x:auto;padding-bottom:6px}
-.setblock{min-width:972px}
+.setblock{min-width:1060px}
 .sethead{margin:14px 0 6px;font-weight:700;font-size:15px;display:flex;justify-content:space-between;color:var(--mute)}
-.grid{display:grid;grid-template-columns:repeat(9,minmax(100px,1fr));gap:8px}
+.grid{display:grid;grid-template-columns:repeat(9,minmax(100px,1fr));gap:12px;padding:5px}
 .card{background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:6px;text-align:center}
 .card.gold{background:var(--goldbg);border-color:var(--gold)}
-.card.sel{box-shadow:0 0 0 2.5px var(--accent)}
+.card.sel{box-shadow:0 0 0 5px var(--accent)}
+.card .qty{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;font-size:11px;color:var(--mute)}
+.card .qty b{display:inline;font-size:14px;min-width:18px;color:var(--ink)}
+.card .qty button{width:24px;height:24px;border:1.5px solid var(--line);border-radius:8px;background:none;font:700 14px Fredoka,sans-serif;line-height:1;cursor:pointer;color:var(--ink)}
+.card .t button{font-size:11px}
 .card b{font-size:20px;display:block}
 .pic{position:relative;border-radius:8px;overflow:hidden;margin-bottom:4px;background:var(--bg);min-height:60px}
 .pic img{display:block;width:100%;height:auto}
@@ -52,20 +61,20 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .card .nm{font-size:11px;color:var(--mute);min-height:14px;line-height:1.2}
 .st{color:var(--gold);font-size:13px;letter-spacing:1px;min-height:18px;margin-bottom:2px;white-space:nowrap}
 .st .unk{color:var(--mute);letter-spacing:0}
-.st .goldtag{font-size:10px;font-weight:700;letter-spacing:.5px;color:#a87b00;margin-left:4px}
+.st .goldtag{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--goldtxt);margin-left:4px}
 .card .t{display:flex;gap:4px;margin-top:4px}
 .card .t button{flex:1;border:1.5px solid var(--line);border-radius:8px;padding:6px 0;font:600 12px Fredoka,sans-serif;background:none;color:var(--mute);cursor:pointer}
-.card .t button.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.card .t button.on{background:var(--ok);border-color:var(--ok);color:var(--onok)}
 .card .t button.f.on{background:linear-gradient(120deg,#ff6b4a,#f4b928,#3fc9a5,#5b8cff);border-color:transparent}
 .box{background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
 .box h3{margin:0 0 4px;font-size:18px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .tag{font-size:12px;font-weight:600;border-radius:8px;padding:2px 8px;background:var(--bg);color:var(--mute)}
-.tag.swap{background:var(--ok);color:#fff}
+.tag.swap{background:var(--ok);color:var(--onok)}
 .chips{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px}
 .chip{background:var(--bg);border-radius:8px;padding:2px 8px;font-size:13px}
 .chip.f{background:linear-gradient(120deg,#ffd6cc,#fff0bd,#c9f2e6,#d4e2ff);color:#1c2a38}
 .chip.g{box-shadow:inset 0 0 0 1.5px var(--gold)}
-.chip.locked{opacity:.45;text-decoration:line-through}
+.chip.locked{opacity:.7;text-decoration:line-through}
 .mrow{display:flex;gap:14px;align-items:flex-start}
 .mrow.locked{opacity:.8}
 .mcard{flex:0 0 118px;text-align:center}
@@ -84,6 +93,8 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 </head>
 <body>
 <header>
+  <label class="themebar">Theme <select id="theme" aria-label="Color theme">
+      <option value="night">Night Forest</option><option value="autumn">Autumn Tales</option><option value="berry">Berry Pop</option><option value="ocean">Ocean Calm</option></select></label>
   <h1>Critter <span>Swap</span></h1>
   <p class="sub">Unofficial fan site. Keep your trade lists in a shared Google Sheet and find who to trade with.</p>
 </header>
@@ -128,7 +139,7 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 
       <div class="box">
         <h3>For trade <span class="tag">your duplicates</span></h3>
-        <input id="in-forTrade" placeholder="e.g. 7, 22, 90F" autocomplete="off" style="width:100%">
+        <input id="in-forTrade" placeholder="e.g. 7, 22x2, 90F  (x2 = two copies)" autocomplete="off" style="width:100%">
         <div class="chips" id="chips-forTrade"></div>
         <p class="err" id="err-forTrade"></p>
       </div>
@@ -196,7 +207,7 @@ const STARS = '111111112' + '111111122' + '111111222' + '111112223' + '111122233
 // Card names are still placeholders on the wiki. Names, stars or rarity can be overridden in the sheet's
 // "Cards" tab (number | name | stars | rarity); a blank cell keeps the default.
 const SETS = ['Solpear','Sparkrow','Droppit','Taptail','Voltkit','Ringtail','Maskfry','Tindercub','Punchimp','Manteeny','Flameow','Kittazap','Cheerling','Momopo','Sparkit'];
-const {TOTAL, GOLD, sortCodes, parseList, sheetIdFrom, parseGrid, findMatches} = CritterLogic;   // pure logic lives in logic.js
+const {TOTAL, GOLD, sortCodes, parseList, formatList, sheetIdFrom, parseGrid, findMatches} = CritterLogic;   // pure logic lives in logic.js
 const LISTS = ['forTrade', 'lookingFor'];
 const LIST_NAME = {forTrade: 'For trade', lookingFor: 'Looking for'};
 const UNIVERSE = {sets: SETS, rar: ['normal', 'gold'], stars: [1, 2, 3, 4, 5, 0]};   // stars 0 = unknown
@@ -213,7 +224,7 @@ let goldOpen = false;
 let mode = 'lookingFor';
 let dirty = false;
 let loadedKey = '';                                  // which name|PUID the lists were last loaded for
-const me = {name: '', playerId: '', forTrade: [], lookingFor: []};
+const me = {name: '', playerId: '', forTrade: [], lookingFor: [], qty: {}};   // qty: copies per For trade card (missing = 1)
 const bad = {forTrade: [], lookingFor: []};          // unrecognised tokens typed in each box
 // card filters (multi-select). Default: every set, both rarities, and 4 and 5 stars (plus unknown stars).
 const filt = {sets: new Set(SETS), rar: new Set(['normal', 'gold']), stars: new Set([4, 5, 0])};
@@ -321,7 +332,7 @@ function showConnect(err, prefill) {
   if (prefill) $('#sheetUrl').value = prefill;
 }
 
-const BUILD = '2026-11-18c';   // shown in the top bar, so you can tell which version of this page is actually being served
+const BUILD = '2026-11-18e';   // shown in the top bar, so you can tell which version of this page is actually being served
 function setInfo() { $('#sheetInfo').textContent = 'Sheet …' + sheetId.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's') + ' · loaded ' + lastLoad.at + ' via ' + lastLoad.source + ' · build ' + BUILD; }
 
 // The site's default sheet from config.js (empty if none). Accepts a full link or a bare sheet ID.
@@ -373,9 +384,10 @@ function findMe(quiet) {
   const who = $('#who');
   if (u) {
     LISTS.forEach(k => { me[k] = sortCodes(u[k]); bad[k] = []; });
+    me.qty = {...(u.qty || {})};
     dirty = false;
     who.className = 'ok';
-    who.textContent = `Loaded your lists from the sheet: ${me.forTrade.length} for trade, ${me.lookingFor.length} looking for.`;
+    who.textContent = `Loaded your lists from the sheet: ${me.forTrade.length} for trade (${totalCopies()} copies), ${me.lookingFor.length} looking for.`;
   } else {
     const byPid = users.find(x => x.playerId && same(x.playerId, pid));
     const byName = users.filter(x => same(x.username, name));
@@ -405,6 +417,9 @@ function autoLoad() {
   if (me.name && me.playerId && !dirty && key !== loadedKey) findMe(true);
 }
 
+const listText = k => formatList(me[k], k === 'forTrade' ? me.qty : null);
+const totalCopies = () => me.forTrade.reduce((n, c) => n + copies(c), 0);
+const copies = c => me.qty[c] || 1;
 function overlap() {
   const s = set(me.lookingFor);
   return me.forTrade.filter(c => s.has(c));
@@ -423,14 +438,14 @@ function errFor(k) {
 function renderLists(skipEl) {
   LISTS.forEach(k => {
     const inp = $('#in-' + k);
-    if (inp !== skipEl) inp.value = me[k].join(', ');
-    $('#chips-' + k).innerHTML = chips(me[k]);
+    if (inp !== skipEl) inp.value = listText(k);
+    $('#chips-' + k).innerHTML = chips(me[k], k === 'forTrade' ? me.qty : null);
     $('#err-' + k).textContent = errFor(k);
   });
   // the Cards tab editor shows whichever list is being picked
   const ci = $('#in-cards');
-  if (ci !== skipEl) ci.value = me[mode].join(', ');
-  ci.placeholder = mode === 'forTrade' ? 'e.g. 7, 22, 90F' : 'e.g. 3, 12F, 40';
+  if (ci !== skipEl) ci.value = listText(mode);
+  ci.placeholder = mode === 'forTrade' ? 'e.g. 7, 22x2, 90F (x2 = two copies)' : 'e.g. 3, 12F, 40';
   $('#ceLabel').textContent = LIST_NAME[mode];
   $('#ceWho').textContent = (me.name && me.playerId) ? `Editing as ${me.name} (${me.playerId})` : 'Enter your user name and player ID on the My Lists tab to load and save.';
   $('#err-cards').textContent = errFor(mode);
@@ -439,6 +454,7 @@ function renderLists(skipEl) {
 function typed(k, inp) {
   const p = parseList(inp.value);
   me[k] = p.ok; bad[k] = p.bad; dirty = true;
+  if (k === 'forTrade') me.qty = p.qty;                  // copies only apply to For trade
   renderLists(inp); render(); updateSaveState();
 }
 LISTS.forEach(k => {
@@ -474,7 +490,7 @@ async function doSave() {
   $('#save').disabled = true; $('#save2').disabled = true;
   try {
     const r = await (await fetch(scriptUrl, {method: 'POST', headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify({playerId: me.playerId, username: me.name, forTrade: me.forTrade.join(','), lookingFor: me.lookingFor.join(','), website: $('#website').value})})).json();
+      body: JSON.stringify({playerId: me.playerId, username: me.name, forTrade: listText('forTrade'), lookingFor: me.lookingFor.join(','), website: $('#website').value})})).json();
     if (!r.ok) throw new Error(r.error || 'Save failed');
     store.set('cs_name', me.name); store.set('cs_pid', me.playerId);
     dirty = false; toast('Saved to the sheet');
@@ -512,6 +528,11 @@ $('#filters').onclick = e => {
   renderFilters(); render();
 };
 
+// copies shown on the card buttons (For trade only, when you hold more than one)
+const qtyTag = c => (me.qty[c] > 1 && me.forTrade.includes(c)) ? ` ×${me.qty[c]}` : '';
+// − / + under a selected card in the For trade picker. Going below 1 un-selects the card.
+const stepper = (c, mine) => mine.has(c)
+  ? `<div class="qty"><span>${isFoil(c) ? 'Foil' : 'Normal'}</span><button data-c="${c}" data-q="-1" aria-label="One less">−</button><b>${copies(c)}</b><button data-c="${c}" data-q="1" aria-label="One more">+</button></div>` : '';
 function render() {
   const q = $('#q').value.trim();
   const list = cards.filter(c => (!q || String(c.n).startsWith(q)) && filt.sets.has(c.set) && filt.rar.has(c.rarity) && filt.stars.has(c.stars));
@@ -521,7 +542,7 @@ function render() {
     : 'Duplicates only. Picking a card here removes it from your "Looking for" list. Cards already in your sheet are preselected.';
   const shown = set(list.map(c => c.n));
   const hidden = me[mode].filter(c => !shown.has(num(c))).length;
-  $('#count').textContent = `Showing ${list.length} of ${TOTAL} cards · ${me.lookingFor.length} looking for · ${me.forTrade.length} for trade`
+  $('#count').textContent = `Showing ${list.length} of ${TOTAL} cards · ${me.lookingFor.length} looking for · ${me.forTrade.length} for trade (${totalCopies()} copies)`
     + (hidden ? ` · ${hidden} selected hidden by the filters` : '');
   let html = '', cur = '';
   list.forEach(c => {
@@ -538,8 +559,9 @@ function render() {
       <div class="pic ${mine.has(f) ? 'foil' : ''}"><img src="cards/${n}.webp" alt="Card ${n}" loading="lazy" onerror="this.parentNode.classList.add('nofile')"></div>
       <b>${n}</b>
       <div class="nm">${esc(c.name)}</div>
-      <div class="t"><button data-c="${n}" class="${mine.has(n) ? 'on' : ''}">Normal</button>
-      <button data-c="${f}" class="f ${mine.has(f) ? 'on' : ''}">Foil</button></div></div>`;
+      <div class="t"><button data-c="${n}" class="${mine.has(n) ? 'on' : ''}">Normal${qtyTag(n)}</button>
+      <button data-c="${f}" class="f ${mine.has(f) ? 'on' : ''}">Foil${qtyTag(f)}</button></div>
+      ${mode === 'forTrade' ? stepper(n, mine) + stepper(f, mine) : ''}</div>`;
   });
   if (cur) html += '</div></div>';
   $('#grid').innerHTML = html || '<p class="mute">No cards match these filters. Turn on more sets, rarities or stars.</p>';
@@ -547,10 +569,19 @@ function render() {
 
 $('#grid').onclick = e => {
   const c = e.target.dataset.c; if (!c) return;
+  if (e.target.dataset.q) {                                   // − / + copies
+    const next = copies(c) + Number(e.target.dataset.q);
+    if (next < 1) { me.forTrade = me.forTrade.filter(x => x !== c); delete me.qty[c]; }
+    else if (next <= 99) { if (next > 1) me.qty[c] = next; else delete me.qty[c]; }
+    bad.forTrade = []; dirty = true;
+    renderLists(); render(); updateSaveState();
+    return;
+  }
   const other = mode === 'lookingFor' ? 'forTrade' : 'lookingFor';
   const s = set(me[mode]); s.has(c) ? s.delete(c) : s.add(c);
   me[mode] = sortCodes([...s]);
-  if (s.has(c)) me[other] = me[other].filter(x => x !== c);   // can't be looking for and trading the same card
+  if (mode === 'forTrade' && !s.has(c)) delete me.qty[c];       // un-selected: forget its copies
+  if (s.has(c)) { me[other] = me[other].filter(x => x !== c); if (other === 'forTrade') delete me.qty[c]; }   // can't be looking for and trading the same card   // can't be looking for and trading the same card
   bad.forTrade = []; bad.lookingFor = []; dirty = true;
   renderLists(); render(); updateSaveState();
 };
@@ -559,10 +590,10 @@ $('#mode').onclick = e => { if (!e.target.dataset.m) return; mode = e.target.dat
 $('#q').oninput = render;
 
 // ---------- matches tab ----------
-function chips(arr) {
+function chips(arr, qty) {
   return arr.map(c => {
     const g = isGold(c);
-    return `<span class="chip ${isFoil(c) ? 'f' : ''} ${g ? 'g' : ''} ${g && !goldOpen ? 'locked' : ''}">${label(c)}${g ? ' ★gold' : ''}</span>`;
+    return `<span class="chip ${isFoil(c) ? 'f' : ''} ${g ? 'g' : ''} ${g && !goldOpen ? 'locked' : ''}">${label(c)}${qty && qty[c] > 1 ? ' ×' + qty[c] : ''}${g ? ' ★gold' : ''}</span>`;
   }).join('');
 }
 
@@ -600,8 +631,8 @@ function renderMatches() {
       return `<div class="box mrow ${locked ? 'locked' : ''}">${matchCard(r.code)}
         <div class="mprov">
           ${locked ? '<p class="mute" style="margin:0">Gold trading is closed right now, so this card can\'t be traded yet.</p>' : ''}
-          ${r.providers.map((p, j) => `<div class="prov"><span><b>${esc(p.user.username || 'unnamed')}</b> <span class="mute">Player ID: ${esc(p.user.playerId || 'not listed')}</span></span>
-            <span class="swap">you give <select class="give" data-i="${i}" data-j="${j}">${p.give.map(c => `<option value="${c}">${label(c)}</option>`).join('')}</select>
+          ${r.providers.map((p, j) => `<div class="prov"><span><b>${esc(p.user.username || 'unnamed')}</b> <span class="mute">Player ID: ${esc(p.user.playerId || 'not listed')}${(p.user.qty && p.user.qty[r.code] > 1) ? ' · has ×' + p.user.qty[r.code] : ''}</span></span>
+            <span class="swap">you give <select class="give" data-i="${i}" data-j="${j}">${p.give.map(c => `<option value="${c}">${label(c)}${copies(c) > 1 ? ' (you have ×' + copies(c) + ')' : ''}</option>`).join('')}</select>
             <button class="btn done" data-i="${i}" data-j="${j}" ${locked ? 'disabled' : ''}>Trade completed</button></span></div>`).join('')}
         </div></div>`;
     }).join('')
@@ -609,7 +640,7 @@ function renderMatches() {
   if (oneWayRows.length) {
     html += '<h3 class="mh">They have it, but want nothing you have</h3><p class="mute">Not a 1-for-1 swap yet. You could still ask them, or add more cards to your For trade list.</p>';
     html += oneWayRows.map(r => `<div class="box mrow">${matchCard(r.code)}<div class="mprov">
-      ${r.providers.map(p => `<div class="prov"><span><b>${esc(p.user.username || 'unnamed')}</b> <span class="mute">Player ID: ${esc(p.user.playerId || 'not listed')}</span></span></div>`).join('')}
+      ${r.providers.map(p => `<div class="prov"><span><b>${esc(p.user.username || 'unnamed')}</b> <span class="mute">Player ID: ${esc(p.user.playerId || 'not listed')}${(p.user.qty && p.user.qty[r.code] > 1) ? ' · has ×' + p.user.qty[r.code] : ''}</span></span></div>`).join('')}
     </div></div>`).join('');
   }
   const none = me.lookingFor.length - new Set([...mutualRows, ...oneWayRows].map(r => r.code)).size;
@@ -629,7 +660,7 @@ async function completeTrade(code, u, give, btn) {
   if (!scriptUrl) return toast('This sheet has no save script yet.');
   if (!me.name || !me.playerId) return toast('Enter your user name and player ID on My Lists first');
   if (dirty) return toast('Save your lists first, then mark the trade completed');
-  if (!confirm(`Mark this trade as completed?\n\nYou get ${label(code)} and give ${label(give)} to ${u.username} (${u.playerId}).\nThis removes ${label(code)} from your Looking for and their For trade, and ${label(give)} from your For trade and their Looking for.`)) return;
+  if (!confirm(`Mark this trade as completed?\n\nYou get ${label(code)} and give ${label(give)} to ${u.username} (${u.playerId}).\nThis removes ${label(code)} from your Looking for and takes one copy off their For trade, and removes ${label(give)} from their Looking for and takes one copy off your For trade.`)) return;
   btn.disabled = true;
   try {
     const r = await (await fetch(scriptUrl, {method: 'POST', headers: {'Content-Type': 'text/plain'},
@@ -649,6 +680,16 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
   if (b.dataset.t === 'cards') { renderLists(); render(); }
   if (b.dataset.t === 'match') renderMatches();
 });
+
+// ---------- theme ----------
+const THEMES = ['night', 'autumn', 'berry', 'ocean'];
+function applyTheme(t) {
+  if (!THEMES.includes(t)) t = 'night';
+  if (t === 'night') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+  $('#theme').value = t;
+}
+applyTheme(store.get('cs_theme'));
+$('#theme').onchange = () => { store.set('cs_theme', $('#theme').value); applyTheme($('#theme').value); };
 
 // ---------- start ----------
 $('#uname').value = me.name = store.get('cs_name');
