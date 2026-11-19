@@ -14,16 +14,30 @@
   const same = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
   const sortCodes = a => [...new Set(a)].sort((x, y) => num(x) - num(y) || (isFoil(x) - isFoil(y)));
 
-  // "3, 12F, [40]" -> {ok: ['3','12F','40'], bad: [...]}
+  const MAX_QTY = 99;
+  // "3, 12F, 7x3, [40]" -> {ok: ['3','12F','7','40'], qty: {'7': 3}, bad: [...]}
+  // "7x3" means 3 copies (also 7*3 or 7×3). qty only lists codes with more than one copy; a missing code means 1.
+  // Only the For trade list uses copies; callers ignore qty for Looking for.
   function parseList(text) {
     const toks = String(text || '').replace(/[\[\]"']/g, ' ').split(/[\s,;]+/).filter(Boolean);
-    const ok = [], bad = [];
+    const ok = [], bad = [], qty = {};
     toks.forEach(t => {
-      const m = /^#?(\d{1,3})(f)?$/i.exec(t);
+      const m = /^#?(\d{1,3})(f)?(?:[x×*](\d{1,2}))?$/i.exec(t);
       const n = m && +m[1];
-      if (m && n >= 1 && n <= TOTAL) ok.push(n + (m[2] ? 'F' : '')); else bad.push(t);
+      const k = m && m[3] !== undefined ? +m[3] : 1;
+      if (m && n >= 1 && n <= TOTAL && k >= 1) {
+        const code = n + (m[2] ? 'F' : '');
+        ok.push(code);
+        qty[code] = Math.min(MAX_QTY, Math.max(qty[code] || 1, k));
+      } else bad.push(t);
     });
-    return {ok: sortCodes(ok), bad};
+    Object.keys(qty).forEach(c => { if (qty[c] <= 1) delete qty[c]; });
+    return {ok: sortCodes(ok), qty, bad};
+  }
+
+  // ['7','22'] + {'7': 2} -> "7x2, 22"   (the text shown in the list boxes and sent when saving)
+  function formatList(codes, qty) {
+    return codes.map(c => (qty && qty[c] > 1) ? c + 'x' + qty[c] : c).join(', ');
   }
 
   function sheetIdFrom(text) {
@@ -32,6 +46,12 @@
     const m = t.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
     if (m) return m[1];
     return /^[a-zA-Z0-9_-]{20,}$/.test(t) ? t : '';
+  }
+
+  // A cell is "FT" / "LF", or "FT3" = 3 copies for trade (also "FT x3"). -> {tag, n} or null
+  function markOf(v) {
+    const m = /^(FT|LF)\s*(?:[X×*]?\s*(\d{1,2}))?$/.exec(String(v ?? '').trim().toUpperCase());
+    return m ? {tag: m[1], n: m[1] === 'FT' && m[2] ? Math.max(1, +m[2]) : 1} : null;
   }
 
   // The album tab is a grid: column A = card numbers, then one column per player.
@@ -44,14 +64,14 @@
       const name = String((rows[0] && rows[0][c]) ?? '').trim();
       const pid = String((rows[1] && rows[1][c]) ?? '').trim();
       if (!name && !pid) continue;
-      const forTrade = [], lookingFor = [];
+      const forTrade = [], lookingFor = [], qty = {};
       for (let i = 0; i < TOTAL * 2; i++) {
-        const mark = String((rows[i + 2] && rows[i + 2][c]) ?? '').trim().toUpperCase();
-        if (mark !== 'FT' && mark !== 'LF') continue;
+        const m = markOf(rows[i + 2] && rows[i + 2][c]);
+        if (!m) continue;
         const code = i < TOTAL ? String(i + 1) : (i - TOTAL + 1) + 'F';
-        (mark === 'FT' ? forTrade : lookingFor).push(code);
+        if (m.tag === 'FT') { forTrade.push(code); if (m.n > 1) qty[code] = m.n; } else lookingFor.push(code);
       }
-      out.push({playerId: pid, username: name, forTrade, lookingFor});
+      out.push({playerId: pid, username: name, forTrade, lookingFor, qty});
     }
     return out;
   }
@@ -83,7 +103,7 @@
     return {mutual: list(mutual), oneWay: list(oneWay)};
   }
 
-  const api = {TOTAL, GOLD, sortCodes, parseList, sheetIdFrom, parseGrid, findMatches};
+  const api = {TOTAL, GOLD, sortCodes, parseList, formatList, markOf, sheetIdFrom, parseGrid, findMatches};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.CritterLogic = api;
 })(typeof window !== 'undefined' ? window : globalThis);
