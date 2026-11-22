@@ -103,7 +103,25 @@
     return {mutual: list(mutual), oneWay: list(oneWay)};
   }
 
-  const api = {TOTAL, GOLD, sortCodes, parseList, formatList, markOf, sheetIdFrom, parseGrid, findMatches};
+  /**
+   * Who wants my spare cards. For each card in my For trade, every other player who has it in their Looking for:
+   *   [{code, copies, wanters: [{user, theyHave: [codes]}]}]
+   * theyHave = cards that player has for trade that I'm looking for. When it isn't empty, an even swap with them is possible
+   * (it also shows under "Even swaps"). Cards nobody wants are left out.
+   */
+  function findWanted(me, users) {
+    const myId = String(me.playerId || '').trim();
+    const others = users.filter(u => !(myId && u.playerId && same(u.playerId, myId)));
+    const rows = [];
+    sortCodes(me.forTrade).forEach(code => {
+      const wanters = others.filter(u => u.lookingFor.includes(code))
+        .map(u => ({user: u, theyHave: sortCodes(me.lookingFor.filter(c => u.forTrade.includes(c)))}));
+      if (wanters.length) rows.push({code, copies: (me.qty && me.qty[code]) || 1, wanters});
+    });
+    return rows;
+  }
+
+  const api = {TOTAL, GOLD, sortCodes, parseList, formatList, markOf, sheetIdFrom, parseGrid, findMatches, findWanted};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.CritterLogic = api;
 })(typeof window !== 'undefined' ? window : globalThis);
