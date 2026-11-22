@@ -80,6 +80,8 @@ button.primary{background:var(--accent);border-color:var(--accent);color:var(--o
 .mcard{flex:0 0 118px;text-align:center}
 .mcard .pic{margin-bottom:4px}
 .mprov{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.mh2{margin:22px 0 4px;font-size:19px;padding-bottom:4px;border-bottom:2px solid var(--line)}
+.mh2:first-child{margin-top:4px}
 .mh{margin:18px 0 4px;font-size:16px}
 .swap{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .prov{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:10px;flex-wrap:wrap}
@@ -196,8 +198,8 @@ button.primary{background:var(--accent);border-color:var(--accent);color:var(--o
 </nav>
 <div class="msg" id="msg"></div>
 
-<script src="logic.js"></script>
-<script src="config.js" onerror="window.CRITTER_CONFIG={}"></script>
+<script>['logic.js', 'config.js'].forEach(function (f) { document.write('<script src="' + f + '?v=' + Date.now() + '"><\/script>'); });</script>
+<script>window.CRITTER_CONFIG = window.CRITTER_CONFIG || {};</script>
 <script>
 // Autumn Tales album: 15 sets x 9 cards = 135. Every card also has a foil version.
 // Star level depends on the card NUMBER, same as the New Journey album on the wiki (the Autumn Tales
@@ -207,7 +209,7 @@ const STARS = '111111112' + '111111122' + '111111222' + '111112223' + '111122233
 // Card names are still placeholders on the wiki. Names, stars or rarity can be overridden in the sheet's
 // "Cards" tab (number | name | stars | rarity); a blank cell keeps the default.
 const SETS = ['Solpear','Sparkrow','Droppit','Taptail','Voltkit','Ringtail','Maskfry','Tindercub','Punchimp','Manteeny','Flameow','Kittazap','Cheerling','Momopo','Sparkit'];
-const {TOTAL, GOLD, sortCodes, parseList, formatList, sheetIdFrom, parseGrid, findMatches} = CritterLogic;   // pure logic lives in logic.js
+const {TOTAL, GOLD, sortCodes, parseList, formatList, sheetIdFrom, parseGrid, findMatches, findWanted} = CritterLogic;   // pure logic lives in logic.js
 const LISTS = ['forTrade', 'lookingFor'];
 const LIST_NAME = {forTrade: 'For trade', lookingFor: 'Looking for'};
 const UNIVERSE = {sets: SETS, rar: ['normal', 'gold'], stars: [1, 2, 3, 4, 5, 0]};   // stars 0 = unknown
@@ -295,7 +297,7 @@ async function readViaScript() {
   const r = await fetch(scriptUrl + (scriptUrl.includes('?') ? '&' : '?') + 'action=grid&_=' + Date.now(), {cache: 'no-store'});
   const j = await r.json();
   if (!j || !j.ok || !Array.isArray(j.rows)) throw new Error('script has no grid');
-  return j.rows;
+  return j;     // {rows, gold?}: gold = the live Gold-trading switch, when the script is new enough to send it
 }
 
 let lastLoad = {source: '', at: ''};
@@ -310,7 +312,12 @@ async function loadSheet(id) {
   goldOpen = (settings.goldTrading || '').toLowerCase() === 'on';
 
   let grid = null, source = 'sheet';
-  if (scriptUrl) { try { grid = await readViaScript(); source = 'script'; } catch (e) { grid = null; } }
+  if (scriptUrl) {
+    try {
+      const j = await readViaScript(); grid = j.rows; source = 'script';
+      if (typeof j.gold === 'boolean') goldOpen = j.gold;      // live value, not Google's cached public copy
+    } catch (e) { grid = null; }
+  }
   if (!grid) { grid = await readGrid(id); source = 'sheet'; }   // throws when Google refuses (sheet not shared)
   lastLoad = {source, at: new Date().toLocaleTimeString()};
 
@@ -332,7 +339,7 @@ function showConnect(err, prefill) {
   if (prefill) $('#sheetUrl').value = prefill;
 }
 
-const BUILD = '2026-11-18e';   // shown in the top bar, so you can tell which version of this page is actually being served
+const BUILD = '2026-11-21a';   // shown in the top bar, so you can tell which version of this page is actually being served
 function setInfo() { $('#sheetInfo').textContent = 'Sheet …' + sheetId.slice(-6) + ' · ' + users.length + ' player' + (users.length === 1 ? '' : 's') + ' · loaded ' + lastLoad.at + ' via ' + lastLoad.source + ' · build ' + BUILD; }
 
 // The site's default sheet from config.js (empty if none). Accepts a full link or a bare sheet ID.
@@ -369,7 +376,12 @@ $('#sheetGo').onclick = () => {
   connect(id, true);
 };
 $('#sheetUrl').onkeydown = e => { if (e.key === 'Enter') $('#sheetGo').click(); };
-$('#reload').onclick = async () => { await connect(sheetId, false); toast('Reloaded'); };
+// Reload = a real, cache-free reload of the whole page (index.html, logic.js, config.js and the sheet data).
+// Opening the same address with a new "?r=" value makes browsers (including Discord's built-in one) fetch everything fresh.
+$('#reload').onclick = () => {
+  if (dirty && !confirm('You have unsaved changes. Reloading will discard them. Reload anyway?')) return;
+  location.replace(location.pathname + '?r=' + Date.now());
+};
 $('#change').onclick = () => { store.del('cs_sheet'); sheetId = ''; const d = defaultSheet(); showConnect('', d ? 'https://docs.google.com/spreadsheets/d/' + d : ''); };
 
 // ---------- my lists ----------
@@ -610,17 +622,39 @@ function matchCard(code, locked) {
   </div>`;
 }
 function renderMatches() {
-  const box = $('#matches');
+  $('#matches').innerHTML = '<h2 class="mh2">Cards you\'re looking for</h2>' + getSection()
+    + '<h2 class="mh2">Who wants your spare cards</h2>' + wantedSection();
+}
+
+// Who wants the cards in my For trade list (the other direction). No button here: a trade is 1-for-1, so
+// players who also have something you want are marked, and the rest are people you can offer a swap to.
+function wantedSection() {
+  if (!me.forTrade.length) return '<p class="mute">Add cards to your For trade list (My Lists or Cards tab) to see who wants them.</p>';
+  const rows = findWanted(me, users);
+  if (!rows.length) return '<p class="mute">Nobody is looking for the cards on your For trade list right now. Press Reload to check for new updates.</p>';
+  const unwanted = me.forTrade.length - rows.length;
+  return '<p class="mute">Players who are looking for cards you have spare.</p>' + rows.map(r => {
+    const locked = isGold(r.code) && !goldOpen;
+    return `<div class="box mrow ${locked ? 'locked' : ''}">${matchCard(r.code)}
+      <div class="mprov">
+        <p class="mute" style="margin:0">${r.wanters.length} ${r.wanters.length === 1 ? 'player wants' : 'players want'} this${r.copies > 1 ? ' · you have ×' + r.copies : ''}</p>
+        ${locked ? '<p class="mute" style="margin:0">Gold trading is closed right now, so this card can\'t be traded yet.</p>' : ''}
+        ${r.wanters.map(w => `<div class="prov"><span><b>${esc(w.user.username || 'unnamed')}</b> <span class="mute">Player ID: ${esc(w.user.playerId || 'not listed')}</span></span>
+          ${w.theyHave.length ? `<span class="tag swap">Even swap: has ${w.theyHave.map(label).join(', ')}</span>` : '<span class="mute">has nothing you\'re looking for</span>'}</div>`).join('')}
+      </div></div>`;
+  }).join('') + (unwanted ? `<p class="mute">${unwanted} card${unwanted === 1 ? '' : 's'} on your For trade list ${unwanted === 1 ? 'isn\'t' : 'aren\'t'} wanted by anyone yet.</p>` : '');
+}
+
+// The "cards you're looking for" half of the Matches tab: who has them, and the even swaps. Returns HTML.
+function getSection() {
   mutualRows = []; oneWayRows = [];
   if (!me.lookingFor.length) {
-    box.innerHTML = '<p class="mute">Add at least one card to your Looking for list (My Lists or Cards tab), then come back here. Enter your user name and player ID on My Lists too, so you can mark trades as completed.</p>';
-    return;
+    return '<p class="mute">Add at least one card to your Looking for list (My Lists or Cards tab). Enter your user name and player ID on My Lists too, so you can mark trades as completed.</p>';
   }
   const res = findMatches(me, users, {goldOpen});
   mutualRows = res.mutual; oneWayRows = res.oneWay;
   if (!mutualRows.length && !oneWayRows.length) {
-    box.innerHTML = '<p class="mute">Nobody has marked FT on a card you\'re looking for yet. Press Reload to check for new updates.</p>';
-    return;
+    return '<p class="mute">Nobody has marked FT on a card you\'re looking for yet. Press Reload to check for new updates.</p>';
   }
   let html = '';
   if (!me.forTrade.length) html += '<p class="mute">Your For trade list is empty. Trades are 1 card for 1 card, so add the cards you can give to see even swaps.</p>';
@@ -645,7 +679,7 @@ function renderMatches() {
   }
   const none = me.lookingFor.length - new Set([...mutualRows, ...oneWayRows].map(r => r.code)).size;
   if (none) html += `<p class="mute">${none} more card${none === 1 ? '' : 's'} on your Looking for list ${none === 1 ? 'is' : 'are'} not marked FT by anyone yet.</p>`;
-  box.innerHTML = html;
+  return html;
 }
 
 // "Trade completed": for the card you get (X) and the card you give (Y), clears your LF on X and their FT on X,
